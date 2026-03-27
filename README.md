@@ -1,6 +1,6 @@
 # Sonesta
 
-Sonesta is a Laravel 13 application using Inertia.js and Vue 3. The current codebase is a clean starter foundation with authentication, email verification, profile management, and a Vite-powered frontend already configured.
+Sonesta is a Laravel 13 application using Inertia.js and Vue 3. The project currently includes the Breeze authentication foundation plus newly added infrastructure for roles and permissions, API token authentication, account banning, country data, Stripe integration, and chart rendering.
 
 ## Stack
 
@@ -10,7 +10,17 @@ Sonesta is a Laravel 13 application using Inertia.js and Vue 3. The current code
 - Vue 3
 - Vite 8
 - Tailwind CSS
+- Chart.js
 - SQLite by default for local development
+
+## Installed Addons
+
+- `spatie/laravel-permission` for roles and permissions
+- `laravel/sanctum` for personal access tokens and SPA/API authentication
+- `cybercog/laravel-ban` for banning users or related models
+- `rinvex/countries` for country reference data
+- `stripe/stripe-php` for Stripe payment integration
+- `chart.js` for frontend charts and data visualization
 
 ## Current Features
 
@@ -20,6 +30,16 @@ Sonesta is a Laravel 13 application using Inertia.js and Vue 3. The current code
 - Auth-protected dashboard
 - Profile update and account deletion
 - Seeded test user for local development
+
+## Integrated Infrastructure
+
+- Permission package config published in `config/permission.php`
+- Sanctum config published in `config/sanctum.php`
+- Role and permission tables migration added
+- Personal access tokens migration added
+- Placeholder `RoleMiddleware` created for future authorization checks
+
+These addons are installed in the codebase, but they are not yet wired into complete business flows everywhere in the app.
 
 ## Project Structure
 
@@ -67,6 +87,12 @@ php artisan key:generate
 php artisan migrate --seed
 ```
 
+If package configs were cached before these addons were installed, clear them once:
+
+```bash
+php artisan config:clear
+```
+
 ## Run The App
 
 For the full local development workflow:
@@ -111,9 +137,11 @@ composer test
 
 ## Notes
 
-- The app currently uses the standard Breeze + Inertia Vue structure as a foundation.
+- The app currently uses the standard Breeze + Inertia Vue structure as its base.
 - The landing page is `resources/js/Pages/Welcome.vue`.
 - The authenticated home page is `resources/js/Pages/Dashboard.vue`.
+- Recent database additions include permission tables and `personal_access_tokens`.
+- The current `RoleMiddleware` exists in `app/Http/Middleware/RoleMiddleware.php`, but its authorization logic has not been implemented yet.
 
 ## License
 
