@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -28,6 +29,38 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_admin_users_are_redirected_to_the_admin_dashboard_after_login(): void
+    {
+        Role::create(['name' => 'admin', 'guard_name' => 'web']);
+
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('admin.dashboard', absolute: false));
+    }
+
+    public function test_manager_users_are_redirected_to_the_manager_dashboard_after_login(): void
+    {
+        Role::create(['name' => 'manager', 'guard_name' => 'web']);
+
+        $user = User::factory()->create();
+        $user->assignRole('manager');
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('manager.dashboard', absolute: false));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

@@ -24,4 +24,20 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/dashboard', function () {
+        return inertia('Admin/Dashboard');
+    })->name('admin.dashboard');
+});
+
+Route::middleware(['auth', 'role:manager'])->group(function () {
+    Route::get('/manager/dashboard', function () {
+        return inertia('Manager/Dashboard');
+    })->name('manager.dashboard');
+});
+
+Route::middleware(['auth', 'role:admin|manager'])->group(function () {
+    // shared access
+});
+
 require __DIR__.'/auth.php';
