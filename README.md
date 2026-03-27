@@ -61,6 +61,7 @@ Running the main database seeder currently creates:
 - Role: `manager`
 - Role: `receptionist`
 - Role: `client`
+- Permissions for dashboard, managers, receptionists, clients, floors, rooms, and reservations
 - Default admin email: `admin@admin.com`
 - Default admin password: `123456`
 - Default admin role: `admin`
@@ -69,6 +70,14 @@ The main seeder calls:
 
 - `RoleSeeder`
 - `AdminSeeder`
+- `PermissionSeeder`
+
+`PermissionSeeder` also assigns the default permission sets for:
+
+- `admin`: all permissions
+- `manager`: dashboard, receptionist management, floor management, and room management
+- `receptionist`: dashboard, client access, client approval, and reservation viewing
+- `client`: room viewing and reservation creation
 
 ## Project Structure
 
@@ -76,7 +85,7 @@ The main seeder calls:
 - `bootstrap/` app bootstrap and middleware aliases
 - `config/` package and framework configuration
 - `database/migrations/` schema history
-- `database/seeders/` roles and admin seed data
+- `database/seeders/` roles, permissions, and admin seed data
 - `resources/js/` Inertia pages, Vue components, and layouts
 - `routes/` web and auth routes
 
@@ -175,6 +184,12 @@ Seed roles only:
 php artisan db:seed --class=RoleSeeder
 ```
 
+Seed permissions and role permission mappings only:
+
+```bash
+php artisan db:seed --class=PermissionSeeder
+```
+
 Seed the admin account only:
 
 ```bash
@@ -182,6 +197,7 @@ php artisan db:seed --class=AdminSeeder
 ```
 
 If you seed `AdminSeeder` by itself, make sure roles already exist first.
+If you seed `PermissionSeeder` by itself, it will create the default roles again if they do not already exist.
 
 ## Testing
 
@@ -195,7 +211,7 @@ composer test
 
 - `resources/js/Pages/Admin/Dashboard.vue` and `resources/js/Pages/Manager/Dashboard.vue` exist as dashboard entry pages
 - `RoleMiddleware` is implemented in `app/Http/Middleware/RoleMiddleware.php`
-- Registration currently assigns the `client` role, so role seed data should exist before using the registration flow
+- Registration currently assigns the `client` role, so role and permission seed data should exist before using the registration flow
 - Stripe, ban logic, countries, and charts are installed, but their business flows are not fully built out yet
 
 ## License
