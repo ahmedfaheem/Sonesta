@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -64,7 +65,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('manager.dashboard', absolute: false));
     }
 
-    public function test_pending_client_users_are_redirected_to_pending_approval_after_login(): void
+    public function test_pending_client_users_can_not_login(): void
     {
         Role::create(['name' => 'client', 'guard_name' => 'web']);
 
@@ -80,13 +81,19 @@ class AuthenticationTest extends TestCase
             'is_approved' => false,
         ]);
 
-        $response = $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'password',
-        ]);
+        $token = Str::random(40);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('pending-approval', absolute: false));
+        $response = $this
+            ->withSession(['_token' => $token])
+            ->withHeader('X-CSRF-TOKEN', $token)
+            ->post('/login', [
+                '_token' => $token,
+                'email' => $user->email,
+                'password' => 'password',
+            ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

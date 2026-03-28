@@ -26,6 +26,7 @@ const showPasswordConfirmation = ref(false);
 const form = useForm({
     name: '',
     email: '',
+    national_id: '',
     password: '',
     password_confirmation: '',
     avatar: null,
@@ -89,6 +90,17 @@ const submit = () => {
                         </option>
                     </select>
                     <InputError :message="form.errors.country" />
+                </div>
+
+                <div class="space-y-2 md:col-span-2">
+                    <Label for="national_id">National ID</Label>
+                    <Input
+                        id="national_id"
+                        v-model="form.national_id"
+                        type="text"
+                        placeholder="Enter your national ID"
+                    />
+                    <InputError :message="form.errors.national_id" />
                 </div>
 
                 <div class="space-y-2">

@@ -8,7 +8,6 @@ use App\Models\Client;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -43,6 +42,7 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'national_id' => $validated['national_id'] ?? null,
             'password' => Hash::make($validated['password']),
             'avatar' => $request->hasFile('avatar')
                 ? Storage::disk('public')->putFile('avatars', $request->file('avatar'))
@@ -63,9 +63,7 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
-
-        return redirect(route('pending-approval', absolute: false))
-            ->with('success', 'Your account is pending approval');
+        return redirect(route('login', absolute: false))
+            ->with('status', 'Your account is pending approval');
     }
 }
