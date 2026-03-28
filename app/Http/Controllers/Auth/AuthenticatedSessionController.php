@@ -59,6 +59,7 @@ class AuthenticatedSessionController extends Controller
         return match (true) {
             $user->hasRole('admin') => route('admin.dashboard', absolute: false),
             $user->hasRole('manager') => route('manager.dashboard', absolute: false),
+            $user->hasRole('client') && ! $user->clientProfile?->is_approved => route('pending-approval', absolute: false),
             default => route('dashboard', absolute: false),
         };
     }
