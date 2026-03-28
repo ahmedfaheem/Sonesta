@@ -4,8 +4,8 @@ use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ManagerController;
 use App\Http\Controllers\Admin\ReceptionistController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Room;
 use App\Models\User;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -13,8 +13,16 @@ Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
+        'rooms' => Room::query()
+            ->latest()
+            ->limit(6)
+            ->get(['id', 'number', 'capacity', 'price'])
+            ->map(fn (Room $room) => [
+                'id' => $room->id,
+                'number' => $room->number,
+                'capacity' => $room->capacity,
+                'price' => number_format($room->price / 100, 2, '.', ''),
+            ]),
     ]);
 });
 

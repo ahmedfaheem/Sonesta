@@ -12,7 +12,7 @@ import { Link } from '@inertiajs/vue3';
                         <ApplicationLogo class="h-16 w-16 fill-current text-slate-900" />
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Sonesta</p>
-                            <p class="mt-1 text-3xl font-semibold tracking-tight text-slate-950">Hotel Management</p>
+                            <p class="mt-1 text-3xl font-semibold tracking-tight text-slate-950">Sonesta</p>
                         </div>
                     </Link>
 
@@ -32,7 +32,7 @@ import { Link } from '@inertiajs/vue3';
                             <ApplicationLogo class="h-14 w-14 fill-current text-slate-900" />
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Sonesta</p>
-                                <p class="text-xl font-semibold text-slate-950">Hotel Management</p>
+                                <p class="text-xl font-semibold text-slate-950">Sonesta</p>
                             </div>
                         </Link>
                     </div>

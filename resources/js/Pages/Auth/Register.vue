@@ -1,27 +1,25 @@
 <script setup>
-import InputError from '@/Components/InputError.vue';
-import Avatar from '@/Components/ui/Avatar.vue';
+import AuthCard from '@/Components/Auth/AuthCard.vue';
+import AvatarUploader from '@/Components/Auth/AvatarUploader.vue';
+import CountrySelect from '@/Components/Auth/CountrySelect.vue';
+import InputField from '@/Components/Auth/InputField.vue';
+import PasswordInput from '@/Components/Auth/PasswordInput.vue';
 import Button from '@/Components/ui/Button.vue';
-import Card from '@/Components/ui/Card.vue';
-import Input from '@/Components/ui/Input.vue';
-import Label from '@/Components/ui/Label.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
+import { usePasswordStrength } from '@/Composables/usePasswordStrength';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, reactive } from 'vue';
 
 defineOptions({
     layout: GuestLayout,
 });
 
-defineProps({
+const props = defineProps({
     countries: {
         type: Array,
         required: true,
     },
 });
-
-const showPassword = ref(false);
-const showPasswordConfirmation = ref(false);
 
 const form = useForm({
     name: '',
@@ -34,158 +32,195 @@ const form = useForm({
     gender: 'male',
 });
 
-const avatarPreview = computed(() => {
-    if (form.avatar instanceof File) {
-        return URL.createObjectURL(form.avatar);
-    }
-
-    return null;
+const touched = reactive({
+    name: false,
+    email: false,
+    national_id: false,
+    password: false,
+    password_confirmation: false,
+    country: false,
+    gender: false,
 });
 
+const markTouched = (field) => {
+    touched[field] = true;
+};
+
+const validations = computed(() => ({
+    name: form.name.trim().length >= 3,
+    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email),
+    national_id: form.national_id.trim() === '' || form.national_id.trim().length >= 8,
+    password: form.password.length >= 6,
+    password_confirmation: form.password_confirmation !== '' && form.password_confirmation === form.password,
+    country: form.country.trim() !== '',
+    gender: ['male', 'female'].includes(form.gender),
+}));
+
+const allValid = computed(() => Object.values(validations.value).every(Boolean));
+const { label: strengthLabel, percentage: strengthPercentage, tone: strengthTone } = usePasswordStrength(computed(() => form.password));
+
 const submit = () => {
+    Object.keys(touched).forEach((field) => {
+        touched[field] = true;
+    });
+
+    if (!allValid.value) {
+        return;
+    }
+
     form.post(route('register'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
+};
+
+const fieldError = (field) => {
+    if (form.errors[field]) return form.errors[field];
+    if (!touched[field]) return '';
+
+    const messages = {
+        name: 'Enter at least 3 characters for your name.',
+        email: 'Enter a valid email address.',
+        national_id: 'National ID should be at least 8 characters if provided.',
+        password: 'Password must be at least 6 characters.',
+        password_confirmation: 'Passwords must match.',
+        country: 'Please select a country.',
+        gender: 'Please choose a gender.',
+    };
+
+    return validations.value[field] ? '' : messages[field];
 };
 </script>
 
 <template>
     <Head title="Register" />
 
-    <Card>
-        <div class="space-y-6 p-8">
-            <div class="space-y-2 text-center">
-                <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Client Registration</p>
-                <h1 class="text-3xl font-semibold tracking-tight text-slate-950">Create your account</h1>
-                <p class="text-sm text-slate-600">Register as a client and wait for account approval.</p>
+    <AuthCard
+        eyebrow="Client Registration"
+        title="Create your hotel account"
+        description="Join the platform, complete your guest profile, and wait for admin approval before accessing booking features."
+        :alert="Object.keys(form.errors).length ? 'Please review the highlighted fields before submitting.' : ''"
+        alert-tone="error"
+    >
+        <form class="grid gap-5 md:grid-cols-2" @submit.prevent="submit">
+            <div class="md:col-span-2">
+                <InputField
+                    id="name"
+                    v-model="form.name"
+                    label="Name"
+                    placeholder="Your full name"
+                    autocomplete="name"
+                    :error="fieldError('name')"
+                    @blur="markTouched('name')"
+                    autofocus
+                />
             </div>
 
-            <div v-if="Object.keys(form.errors).length" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                Please correct the highlighted fields and try again.
+            <InputField
+                id="email"
+                v-model="form.email"
+                label="Email"
+                type="email"
+                placeholder="you@example.com"
+                autocomplete="username"
+                :error="fieldError('email')"
+                @blur="markTouched('email')"
+            />
+
+            <CountrySelect
+                id="country"
+                v-model="form.country"
+                label="Country"
+                :countries="countries"
+                :error="fieldError('country')"
+                @blur="markTouched('country')"
+            />
+
+            <div class="md:col-span-2">
+                <InputField
+                    id="national_id"
+                    v-model="form.national_id"
+                    label="National ID"
+                    placeholder="Enter your national ID"
+                    :error="fieldError('national_id')"
+                    hint="Optional, but recommended for profile verification."
+                    @blur="markTouched('national_id')"
+                />
             </div>
 
-            <form class="grid gap-5 md:grid-cols-2" @submit.prevent="submit">
-                <div class="space-y-2 md:col-span-2">
-                    <Label for="name">Name</Label>
-                    <Input id="name" v-model="form.name" type="text" autofocus autocomplete="name" placeholder="Your full name" />
-                    <InputError :message="form.errors.name" />
-                </div>
+            <PasswordInput
+                id="password"
+                v-model="form.password"
+                label="Password"
+                autocomplete="new-password"
+                placeholder="Create a secure password"
+                :error="fieldError('password')"
+                show-strength
+                :strength-label="strengthLabel"
+                :strength-percentage="strengthPercentage"
+                :strength-tone="strengthTone"
+                hint="Use letters, numbers, and symbols for a stronger password."
+                @blur="markTouched('password')"
+            />
 
-                <div class="space-y-2">
-                    <Label for="email">Email</Label>
-                    <Input id="email" v-model="form.email" type="email" autocomplete="username" placeholder="you@example.com" />
-                    <InputError :message="form.errors.email" />
-                </div>
+            <PasswordInput
+                id="password_confirmation"
+                v-model="form.password_confirmation"
+                label="Confirm Password"
+                autocomplete="new-password"
+                placeholder="Repeat your password"
+                :error="fieldError('password_confirmation')"
+                @blur="markTouched('password_confirmation')"
+            />
 
-                <div class="space-y-2">
-                    <Label for="country">Country</Label>
-                    <select
-                        id="country"
-                        v-model="form.country"
-                        class="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+            <div class="space-y-2 md:col-span-2">
+                <p class="text-sm font-medium text-slate-700">Gender</p>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <label
+                        class="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition"
+                        :class="form.gender === 'male' ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white hover:border-slate-300'"
                     >
-                        <option disabled value="">Select your country</option>
-                        <option v-for="country in countries" :key="country.name" :value="country.name">
-                            {{ country.name }}
-                        </option>
-                    </select>
-                    <InputError :message="form.errors.country" />
+                        <input v-model="form.gender" type="radio" value="male" class="sr-only" @change="markTouched('gender')" />
+                        <span class="text-lg">♂</span>
+                        <span class="text-sm font-medium text-slate-800">Male</span>
+                    </label>
+                    <label
+                        class="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition"
+                        :class="form.gender === 'female' ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white hover:border-slate-300'"
+                    >
+                        <input v-model="form.gender" type="radio" value="female" class="sr-only" @change="markTouched('gender')" />
+                        <span class="text-lg">♀</span>
+                        <span class="text-sm font-medium text-slate-800">Female</span>
+                    </label>
                 </div>
+                <p v-if="fieldError('gender')" class="text-sm text-red-600">{{ fieldError('gender') }}</p>
+            </div>
 
-                <div class="space-y-2 md:col-span-2">
-                    <Label for="national_id">National ID</Label>
-                    <Input
-                        id="national_id"
-                        v-model="form.national_id"
-                        type="text"
-                        placeholder="Enter your national ID"
-                    />
-                    <InputError :message="form.errors.national_id" />
-                </div>
+            <div class="md:col-span-2">
+                <AvatarUploader v-model="form.avatar" :error="form.errors.avatar" :name="form.name" />
+            </div>
 
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <Label for="password">Password</Label>
-                        <button type="button" class="text-xs font-medium text-slate-500 hover:text-slate-900" @click="showPassword = !showPassword">
-                            {{ showPassword ? 'Hide' : 'Show' }}
-                        </button>
-                    </div>
-                    <Input id="password" v-model="form.password" :type="showPassword ? 'text' : 'password'" autocomplete="new-password" />
-                    <InputError :message="form.errors.password" />
-                </div>
+            <div class="md:col-span-2">
+                <Button type="submit" class="w-full" :disabled="form.processing || !allValid">
+                    <svg
+                        v-if="form.processing"
+                        class="mr-2 h-4 w-4 animate-spin"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="4" />
+                        <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+                    </svg>
+                    {{ form.processing ? 'Creating account...' : 'Create account' }}
+                </Button>
+            </div>
+        </form>
 
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <Label for="password_confirmation">Confirm Password</Label>
-                        <button
-                            type="button"
-                            class="text-xs font-medium text-slate-500 hover:text-slate-900"
-                            @click="showPasswordConfirmation = !showPasswordConfirmation"
-                        >
-                            {{ showPasswordConfirmation ? 'Hide' : 'Show' }}
-                        </button>
-                    </div>
-                    <Input
-                        id="password_confirmation"
-                        v-model="form.password_confirmation"
-                        :type="showPasswordConfirmation ? 'text' : 'password'"
-                        autocomplete="new-password"
-                    />
-                    <InputError :message="form.errors.password_confirmation" />
-                </div>
-
-                <div class="space-y-2 md:col-span-2">
-                    <Label>Gender</Label>
-                    <div class="grid gap-3 sm:grid-cols-2">
-                        <label
-                            class="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3"
-                            :class="form.gender === 'male' ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'"
-                        >
-                            <input v-model="form.gender" type="radio" value="male" class="h-4 w-4 border-slate-300 text-slate-900 focus:ring-slate-300" />
-                            <span class="text-sm font-medium text-slate-800">Male</span>
-                        </label>
-                        <label
-                            class="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3"
-                            :class="form.gender === 'female' ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'"
-                        >
-                            <input v-model="form.gender" type="radio" value="female" class="h-4 w-4 border-slate-300 text-slate-900 focus:ring-slate-300" />
-                            <span class="text-sm font-medium text-slate-800">Female</span>
-                        </label>
-                    </div>
-                    <InputError :message="form.errors.gender" />
-                </div>
-
-                <div class="space-y-2 md:col-span-2">
-                    <Label for="avatar">Avatar</Label>
-                    <div class="flex flex-col gap-4 rounded-2xl border border-dashed border-slate-200 p-4 sm:flex-row sm:items-center">
-                        <Avatar :src="avatarPreview" :fallback="form.name || 'NA'" size="lg" :alt="form.name" />
-                        <div class="flex-1">
-                            <input
-                                id="avatar"
-                                type="file"
-                                accept="image/jpeg,image/jpg"
-                                class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-slate-700"
-                                @input="form.avatar = $event.target.files[0]"
-                            />
-                            <p class="mt-2 text-xs text-slate-500">Optional. JPG or JPEG only. A default avatar placeholder is used when none is uploaded.</p>
-                            <InputError :message="form.errors.avatar" class="mt-2" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="md:col-span-2">
-                    <Button type="submit" class="w-full" :disabled="form.processing">
-                        {{ form.processing ? 'Creating account...' : 'Register' }}
-                    </Button>
-                </div>
-            </form>
-
-            <p class="text-center text-sm text-slate-600">
-                Already registered?
-                <Link :href="route('login')" class="font-medium text-slate-950 underline-offset-4 hover:underline">
-                    Sign in here
-                </Link>
-            </p>
-        </div>
-    </Card>
+        <p class="text-center text-sm text-slate-600">
+            Already registered?
+            <Link :href="route('login')" class="font-medium text-slate-950 underline-offset-4 hover:underline">
+                Sign in here
+            </Link>
+        </p>
+    </AuthCard>
 </template>
