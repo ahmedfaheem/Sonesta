@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Manager\FloorController;
+use App\Http\Controllers\Manager\RoomController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ManagerController;
 use App\Http\Controllers\Admin\ReceptionistController;
@@ -57,6 +59,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
             ->parameters(['receptionists' => 'user']);
         Route::resource('clients', ClientController::class)
             ->parameters(['clients' => 'user']);
+        Route::resource('floors', FloorController::class)->except('show');
+        Route::resource('rooms', RoomController::class)->except('show');
     });
 });
 
@@ -67,7 +71,10 @@ Route::middleware(['auth', 'role:manager'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin|manager'])->group(function () {
-    // shared access
+    Route::prefix('manager')->name('manager.')->group(function () {
+        Route::resource('floors', FloorController::class)->except('show');
+        Route::resource('rooms', RoomController::class)->except('show');
+    });
 });
 
 require __DIR__.'/auth.php';
