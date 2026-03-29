@@ -1,73 +1,11 @@
 version: '3.8'
 
 services:
-<<<<<<< Updated upstream
-=======
   # The Laravel Application (PHP-FPM)
->>>>>>> Stashed changes
   app:
     build:
       context: .
       dockerfile: Dockerfile
-<<<<<<< Updated upstream
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/var/www/html
-    environment:
-      - APP_NAME=Laravel
-      - APP_ENV=local
-      - APP_KEY=
-      - APP_DEBUG=true
-      - APP_URL=http://localhost:8000
-      - LOG_CHANNEL=stack
-      - DB_CONNECTION=mysql
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_DATABASE=sonesta
-      - DB_USERNAME=sonesta
-      - DB_PASSWORD=secret
-      - BROADCAST_CONNECTION=redis
-      - CACHE_DRIVER=redis
-      - QUEUE_CONNECTION=redis
-      - SESSION_DRIVER=redis
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=null
-      - REDIS_PORT=6379
-    depends_on:
-      - db
-      - redis
-    networks:
-      - sonesta
-
-  db:
-    image: mysql:8.0
-    ports:
-      - "3306:3306"
-    environment:
-      - MYSQL_DATABASE=sonesta
-      - MYSQL_USER=sonesta
-      - MYSQL_PASSWORD=secret
-      - MYSQL_ROOT_PASSWORD=root_secret
-    volumes:
-      - db_data:/var/lib/mysql
-    networks:
-      - sonesta
-
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-    networks:
-      - sonesta
-
-networks:
-  sonesta:
-    driver: bridge
-
-volumes:
-  db_data:
-=======
     image: sonesta-app
     container_name: sonesta-app
     restart: unless-stopped
@@ -76,6 +14,7 @@ volumes:
       SERVICE_NAME: app
       SERVICE_TAGS: dev
     working_dir: /var/www
+    command: sh -c "mkdir -p /var/www/database && touch /var/www/database/database.sqlite && npm run build && chown -R www-data:www-data /var/www/database /var/www/storage /var/www/bootstrap/cache && chmod -R 775 /var/www/database /var/www/storage /var/www/bootstrap/cache && php-fpm"
     volumes:
       - ./:/var/www
       - ./storage:/var/www/storage
@@ -101,4 +40,3 @@ volumes:
 networks:
   sonesta-network:
     driver: bridge
->>>>>>> Stashed changes

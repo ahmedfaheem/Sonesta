@@ -1,96 +1,81 @@
-<<<<<<< Updated upstream
-FROM php:8.3-fpm
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    npm \
-    nodejs \
-    redis-tools \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-=======
-# Use an official PHP runtime as a parent image
-FROM php:8.3-fpm
+# Use official PHP 8.4 FPM image
+FROM php:8.4-fpm
 
 # Set working directory
 WORKDIR /var/www
 
+# -------------------------------
 # Install system dependencies
+# -------------------------------
 RUN apt-get update && apt-get install -y \
-    build-essential \
     libpng-dev \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
-    locales \
-    zip \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
-    unzip \
-    git \
-    curl \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
+    sqlite3 \
     libsqlite3-dev \
-    pkg-config
+    unzip \
+    git \
+    curl \
+    pkg-config \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# -------------------------------
+# Install PHP extensions required by Laravel
+# -------------------------------
+RUN docker-php-ext-install \
+    pdo_mysql \
+    pdo_sqlite \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    zip
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd zip
->>>>>>> Stashed changes
-
+# -------------------------------
 # Install Composer
+# -------------------------------
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-<<<<<<< Updated upstream
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy composer files and install dependencies
-COPY composer.json composer.lock ./
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
-
-# Copy package files and install Node.js dependencies
-COPY package.json package-lock.json ./
-RUN npm install
-
-# Copy the rest of the application
+# -------------------------------
+# Copy full Laravel project
+# -------------------------------
 COPY . .
 
-# Expose port 8000 for Laravel development server
-EXPOSE 8000
+# -------------------------------
+# Install PHP dependencies
+# -------------------------------
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Set Laravel permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
-
-# Use the Laravel development server command
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
-=======
-# Install Node.js
+# -------------------------------
+# Install Node.js (for frontend builds)
+# -------------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
+    && apt-get install -y nodejs \
+    && npm install -g npm@latest
 
-# Copy existing application directory contents
-COPY . /var/www
+# -------------------------------
+# Install Node.js dependencies
+# -------------------------------
+RUN npm install
 
-# Copy existing application directory permissions
-COPY --chown=www-data:www-data . /var/www
+# -------------------------------
+# Ensure SQLite file and Laravel writable directories exist
+# -------------------------------
+RUN mkdir -p database && touch database/database.sqlite \
+    && chown -R www-data:www-data /var/www/database /var/www/storage /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/database /var/www/storage /var/www/bootstrap/cache
 
-# Change current user to www
-USER www-data
-
-# Expose port 9000 and start php-fpm server
+# -------------------------------
+# Expose php-fpm port
+# -------------------------------
 EXPOSE 9000
+
+# -------------------------------
+# Start PHP-FPM for Nginx
+# -------------------------------
 CMD ["php-fpm"]
->>>>>>> Stashed changes
