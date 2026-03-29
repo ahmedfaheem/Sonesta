@@ -1,13 +1,18 @@
 <script setup>
+import AuthCard from '@/Components/Auth/AuthCard.vue';
+import InputField from '@/Components/Auth/InputField.vue';
+import PasswordInput from '@/Components/Auth/PasswordInput.vue';
 import Checkbox from '@/Components/Checkbox.vue';
+import Button from '@/Components/ui/Button.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
-defineProps({
+defineOptions({
+    layout: GuestLayout,
+});
+
+const props = defineProps({
     canResetPassword: {
         type: Boolean,
     },
@@ -22,7 +27,13 @@ const form = useForm({
     remember: false,
 });
 
+const isValid = computed(() => form.email.trim() !== '' && form.password.trim() !== '');
+const alertMessage = computed(() => props.status || form.errors.email || form.errors.password || '');
+const alertTone = computed(() => (props.status ? 'success' : 'error'));
+
 const submit = () => {
+    if (!isValid.value) return;
+
     form.post(route('login'), {
         onFinish: () => form.reset('password'),
     });
@@ -30,71 +41,73 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Log in" />
+    <Head title="Log in" />
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-            {{ status }}
-        </div>
+    <AuthCard
+        eyebrow="Welcome Back"
+        title="Sign in to your workspace"
+        description="Access hotel operations, guest profiles, and reservation workflows from one secure place."
+        :alert="alertMessage"
+        :alert-tone="alertTone"
+    >
+        <form class="space-y-5" @submit.prevent="submit">
+            <InputField
+                id="email"
+                v-model="form.email"
+                label="Email"
+                type="email"
+                autocomplete="username"
+                placeholder="you@example.com"
+                :error="form.errors.email"
+                autofocus
+            />
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
+            <PasswordInput
+                id="password"
+                v-model="form.password"
+                label="Password"
+                autocomplete="current-password"
+                placeholder="Enter your password"
+                :error="form.errors.password"
+            />
 
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
-                />
-
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
-
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="current-password"
-                />
-
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
-
-            <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600"
-                        >Remember me</span
-                    >
+            <div class="flex items-center justify-between gap-4">
+                <label class="flex items-center gap-3 text-sm text-slate-600">
+                    <Checkbox v-model:checked="form.remember" />
+                    <span>Remember me</span>
                 </label>
-            </div>
 
-            <div class="mt-4 flex items-center justify-end">
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    class="text-sm font-medium text-slate-600 transition hover:text-slate-950"
                 >
-                    Forgot your password?
+                    Forgot password?
                 </Link>
+            </div>
 
-                <PrimaryButton
-                    class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Log in
-                </PrimaryButton>
+            <div class="space-y-3">
+                <Button type="submit" class="w-full" :disabled="form.processing || !isValid">
+                    <svg
+                        v-if="form.processing"
+                        class="mr-2 h-4 w-4 animate-spin"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="4" />
+                        <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+                    </svg>
+                    {{ form.processing ? 'Signing in...' : 'Log in' }}
+                </Button>
             </div>
         </form>
-    </GuestLayout>
+
+        <p class="text-center text-sm text-slate-600">
+            Don’t have an account?
+            <Link :href="route('register')" class="font-medium text-slate-950 underline-offset-4 hover:underline">
+                Register here
+            </Link>
+        </p>
+    </AuthCard>
 </template>
