@@ -46,6 +46,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # -------------------------------
 COPY . .
 
+RUN mkdir -p bootstrap/cache storage \
+    && chmod -R 777 bootstrap/cache storage
+
 # -------------------------------
 # Install PHP dependencies
 # -------------------------------
