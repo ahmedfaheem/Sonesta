@@ -15,6 +15,15 @@ class Reservation extends Model
         'reservation_date',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'accompany_number' => 'integer',
+            'paid_price' => 'integer',
+            'reservation_date' => 'datetime',
+        ];
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);

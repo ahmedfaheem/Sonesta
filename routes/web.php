@@ -5,6 +5,9 @@ use App\Http\Controllers\Manager\RoomController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ManagerController;
 use App\Http\Controllers\Admin\ReceptionistController;
+use App\Http\Controllers\Receptionist\ClientController as ReceptionistClientController;
+use App\Http\Controllers\Receptionist\DashboardController as ReceptionistDashboardController;
+use App\Http\Controllers\Receptionist\ReservationController as ReceptionistReservationController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Room;
 use App\Models\User;
@@ -68,6 +71,22 @@ Route::middleware(['auth', 'role:manager'])->group(function () {
     Route::get('/manager/dashboard', function () {
         return inertia('Manager/Dashboard');
     })->name('manager.dashboard');
+});
+
+Route::middleware(['auth', 'role:receptionist'])->group(function () {
+    Route::get('/receptionist/dashboard', ReceptionistDashboardController::class)
+        ->name('receptionist.dashboard');
+
+    Route::prefix('receptionist')->name('receptionist.')->group(function () {
+        Route::get('clients/pending', [ReceptionistClientController::class, 'pending'])
+            ->name('clients.pending');
+        Route::patch('clients/{user}/approve', [ReceptionistClientController::class, 'approve'])
+            ->name('clients.approve');
+        Route::get('clients/my-approved', [ReceptionistClientController::class, 'approved'])
+            ->name('clients.approved');
+        Route::get('reservations', [ReceptionistReservationController::class, 'index'])
+            ->name('reservations.index');
+    });
 });
 
 Route::middleware(['auth', 'role:admin|manager'])->group(function () {

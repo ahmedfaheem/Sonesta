@@ -14,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'national_id', 'avatar', 'created_by', 'is_approved'])]
+#[Fillable(['name', 'email', 'password', 'national_id', 'avatar', 'created_by', 'is_approved', 'approved_by'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -55,6 +55,16 @@ class User extends Authenticatable
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function approvedUsers(): HasMany
+    {
+        return $this->hasMany(User::class, 'approved_by');
     }
 
     public function clientProfile(): HasOne

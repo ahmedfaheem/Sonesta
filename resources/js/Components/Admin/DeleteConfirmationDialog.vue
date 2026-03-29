@@ -15,6 +15,14 @@ defineProps({
         type: String,
         default: 'This action cannot be undone.',
     },
+    confirmLabel: {
+        type: String,
+        default: 'Delete',
+    },
+    confirmVariant: {
+        type: String,
+        default: 'destructive',
+    },
     processing: {
         type: Boolean,
         default: false,
@@ -32,8 +40,8 @@ const emit = defineEmits(['close', 'confirm']);
 
             <div class="mt-6 flex justify-end gap-3">
                 <Button variant="secondary" @click="emit('close')">Cancel</Button>
-                <Button variant="destructive" :disabled="processing" @click="emit('confirm')">
-                    Delete
+                <Button :variant="confirmVariant" :disabled="processing" @click="emit('confirm')">
+                    {{ confirmLabel }}
                 </Button>
             </div>
         </div>
