@@ -89,28 +89,32 @@ The main seeder calls:
 - `resources/js/` Inertia pages, Vue components, and layouts
 - `routes/` web and auth routes
 
-## Installation
+## Setup & Installation
 
-### 1. Install dependencies
+You can choose to set up the project either manually on your local machine or using Docker.
+
+### Option 1: Manual Setup
+
+#### 1. Install dependencies
 
 ```bash
 composer install
 npm install
 ```
 
-### 2. Create environment file
+#### 2. Create environment file
 
 ```bash
 cp .env.example .env
 ```
 
-### 3. Generate the app key
+#### 3. Generate the app key
 
 ```bash
 php artisan key:generate
 ```
 
-### 4. Prepare the database
+#### 4. Prepare the database
 
 The project is configured for SQLite by default. Make sure the database file exists:
 
@@ -120,7 +124,7 @@ touch database/database.sqlite
 
 If you want to use another database, update `.env` before running migrations.
 
-### 5. Clear cached config
+#### 5. Clear cached config
 
 This is useful after pulling package/config changes:
 
@@ -129,7 +133,7 @@ php artisan config:clear
 php artisan cache:clear
 ```
 
-### 6. Run migrations and seed all default data
+#### 6. Run migrations and seed all default data
 
 For a fresh local install:
 
@@ -137,13 +141,7 @@ For a fresh local install:
 php artisan migrate:fresh --seed
 ```
 
-If your database is already empty and you only need normal migration flow:
-
-```bash
-php artisan migrate --seed
-```
-
-## Running the Project
+#### 7. Start the development servers
 
 Start the full development workflow:
 
@@ -152,23 +150,51 @@ composer run dev
 ```
 
 This runs:
-
 - Laravel development server
-- queue listener
+- Queue listener
 - Laravel Pail
 - Vite dev server
 
-Frontend only:
+---
+
+### Option 2: Docker Setup
+
+The project includes a `Dockerfile` and `docker-compose.yml` for an easy containerized setup.
+
+#### 1. Build and start the containers
 
 ```bash
-npm run dev
+docker-compose up -d --build
 ```
 
-Production build:
+#### 2. Install dependencies inside the container
 
 ```bash
-npm run build
+docker-compose exec app composer install
+docker-compose exec app npm install
 ```
+
+#### 3. Setup environment and project
+
+```bash
+docker-compose exec app cp .env.example .env
+docker-compose exec app php artisan key:generate
+docker-compose exec app touch database/database.sqlite
+docker-compose exec app php artisan migrate:fresh --seed
+docker-compose exec app npm run build
+```
+
+#### 4. Access the application
+
+The application will be available at `http://localhost:8000`.
+
+#### 5. Useful Docker Commands
+
+- **Stop containers**: `docker-compose down`
+- **View logs**: `docker-compose logs -f`
+- **Run artisan commands**: `docker-compose exec app php artisan <command>`
+- **Run npm commands**: `docker-compose exec app npm <command>`
+- **Run Vite dev server**: `docker-compose exec app npm run dev`
 
 ## Seeding Commands
 
