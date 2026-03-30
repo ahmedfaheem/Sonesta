@@ -150,6 +150,7 @@ composer run dev
 ```
 
 This runs:
+
 - Laravel development server
 - Queue listener
 - Laravel Pail
@@ -164,24 +165,24 @@ The project includes a `Dockerfile` and `docker-compose.yml` for an easy contain
 #### 1. Build and start the containers
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 #### 2. Install dependencies inside the container
 
 ```bash
-docker-compose exec app composer install
-docker-compose exec app npm install
+docker compose exec app composer install
+docker compose exec app npm install
 ```
 
 #### 3. Setup environment and project
 
 ```bash
-docker-compose exec app cp .env.example .env
-docker-compose exec app php artisan key:generate
-docker-compose exec app touch database/database.sqlite
-docker-compose exec app php artisan migrate:fresh --seed
-docker-compose exec app npm run build
+docker compose exec app cp .env.example .env
+docker compose exec app php artisan key:generate
+docker compose exec app touch database/database.sqlite
+docker compose exec app php artisan migrate:fresh --seed
+docker compose exec app npm run build
 ```
 
 #### 4. Access the application
@@ -190,11 +191,11 @@ The application will be available at `http://localhost:8000`.
 
 #### 5. Useful Docker Commands
 
-- **Stop containers**: `docker-compose down`
-- **View logs**: `docker-compose logs -f`
-- **Run artisan commands**: `docker-compose exec app php artisan <command>`
-- **Run npm commands**: `docker-compose exec app npm <command>`
-- **Run Vite dev server**: `docker-compose exec app npm run dev`
+- **Stop containers**: `docker compose down`
+- **View logs**: `docker compose logs -f`
+- **Run artisan commands**: `docker compose exec app php artisan <command>`
+- **Run npm commands**: `docker compose exec app npm <command>`
+- **Run Vite dev server**: `docker compose exec app npm run dev`
 
 ## Seeding Commands
 
