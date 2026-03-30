@@ -7,6 +7,7 @@ use App\Models\Floor;
 use App\Models\Reservation;
 use App\Models\Room;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -19,13 +20,13 @@ class ReceptionistTestSeeder extends Seeder
     {
         $receptionists = collect([
             [
-                'name' => 'Receptionist One',
-                'email' => 'receptionist1@test.com',
+                'name' => 'Nour Hassan',
+                'email' => 'nour.hassan@test.com',
                 'national_id' => '90000000000001',
             ],
             [
-                'name' => 'Receptionist Two',
-                'email' => 'receptionist2@test.com',
+                'name' => 'Layla Farouk',
+                'email' => 'layla.farouk@test.com',
                 'national_id' => '90000000000002',
             ],
         ])->map(fn (array $attributes) => $this->createReceptionist($attributes));
@@ -33,22 +34,58 @@ class ReceptionistTestSeeder extends Seeder
         $manager = $this->createManager();
         $rooms = $this->ensureRooms($manager);
 
-        foreach (range(1, 5) as $index) {
-            $this->createClient([
-                'name' => "Pending Client {$index}",
-                'email' => "pendingclient{$index}@test.com",
-                'national_id' => sprintf('910000000000%02d', $index),
-                'country' => $index % 2 === 0 ? 'France' : 'Egypt',
-                'gender' => $index % 2 === 0 ? 'female' : 'male',
+        collect([
+            [
+                'name' => 'Omar Abdelrahman',
+                'email' => 'omar.abdelrahman@test.com',
+                'national_id' => '91000000000001',
+                'country' => 'Egypt',
+                'gender' => 'male',
                 'is_approved' => false,
                 'approved_by' => null,
-            ]);
-        }
+            ],
+            [
+                'name' => 'Mariam Adel',
+                'email' => 'mariam.adel@test.com',
+                'national_id' => '91000000000002',
+                'country' => 'France',
+                'gender' => 'female',
+                'is_approved' => false,
+                'approved_by' => null,
+            ],
+            [
+                'name' => 'Youssef Kamal',
+                'email' => 'youssef.kamal@test.com',
+                'national_id' => '91000000000003',
+                'country' => 'Jordan',
+                'gender' => 'male',
+                'is_approved' => false,
+                'approved_by' => null,
+            ],
+            [
+                'name' => 'Salma Nabil',
+                'email' => 'salma.nabil@test.com',
+                'national_id' => '91000000000004',
+                'country' => 'Italy',
+                'gender' => 'female',
+                'is_approved' => false,
+                'approved_by' => null,
+            ],
+            [
+                'name' => 'Khaled Mostafa',
+                'email' => 'khaled.mostafa@test.com',
+                'national_id' => '91000000000005',
+                'country' => 'Spain',
+                'gender' => 'male',
+                'is_approved' => false,
+                'approved_by' => null,
+            ],
+        ])->each(fn (array $attributes) => $this->createClient($attributes));
 
         $approvedClients = collect([
             [
-                'name' => 'Approved Client 1',
-                'email' => 'approvedclient1@test.com',
+                'name' => 'Ahmed Samir',
+                'email' => 'ahmed.samir@test.com',
                 'national_id' => '92000000000001',
                 'country' => 'Egypt',
                 'gender' => 'male',
@@ -56,8 +93,8 @@ class ReceptionistTestSeeder extends Seeder
                 'approved_by' => $receptionists[0]->id,
             ],
             [
-                'name' => 'Approved Client 2',
-                'email' => 'approvedclient2@test.com',
+                'name' => 'Giulia Rossi',
+                'email' => 'giulia.rossi@test.com',
                 'national_id' => '92000000000002',
                 'country' => 'Italy',
                 'gender' => 'female',
@@ -65,8 +102,8 @@ class ReceptionistTestSeeder extends Seeder
                 'approved_by' => $receptionists[0]->id,
             ],
             [
-                'name' => 'Approved Client 3',
-                'email' => 'approvedclient3@test.com',
+                'name' => 'Carlos Ortega',
+                'email' => 'carlos.ortega@test.com',
                 'national_id' => '92000000000003',
                 'country' => 'Spain',
                 'gender' => 'male',
@@ -82,21 +119,20 @@ class ReceptionistTestSeeder extends Seeder
                 return;
             }
 
-            foreach (range(1, 2) as $reservationIndex) {
-                $room = $rooms[($index + $reservationIndex - 1) % $rooms->count()];
+            // Ensure each approved client has exactly one reservation and no shared room/date slot.
+            $room = $rooms[$index % $rooms->count()];
 
-                Reservation::updateOrCreate(
-                    [
-                        'client_id' => $client->id,
-                        'room_id' => $room->id,
-                        'reservation_date' => now()->subDays(($index * 2) + $reservationIndex),
-                    ],
-                    [
-                        'accompany_number' => ($index + $reservationIndex) % 3,
-                        'paid_price' => $room->price + (($index + 1) * 2500) + ($reservationIndex * 1250),
-                    ],
-                );
-            }
+            Reservation::updateOrCreate(
+                [
+                    'client_id' => $client->id,
+                    'room_id' => $room->id,
+                    'reservation_date' => now()->subDays($index + 1),
+                ],
+                [
+                    'accompany_number' => min($index + 1, $room->capacity),
+                    'paid_price' => $room->price + (($index + 1) * 2000),
+                ],
+            );
         });
     }
 
@@ -122,12 +158,14 @@ class ReceptionistTestSeeder extends Seeder
 
     protected function createManager(): User
     {
-        $manager = User::firstOrCreate(
+        $manager = User::updateOrCreate(
             ['email' => 'manager.seed@test.com'],
             [
-                'name' => 'Seed Manager',
+                'name' => 'Mahmoud Elsayed',
                 'password' => Hash::make('123456'),
                 'national_id' => '93000000000001',
+                'is_approved' => true,
+                'approved_by' => null,
             ],
         );
 
@@ -138,12 +176,12 @@ class ReceptionistTestSeeder extends Seeder
         return $manager;
     }
 
-    protected function ensureRooms(User $manager)
+    protected function ensureRooms(User $manager): Collection
     {
         $floorOne = Floor::firstOrCreate(
             ['number' => '1001'],
             [
-                'name' => 'Seed Floor One',
+                'name' => 'Nile Wing - First Floor',
                 'manager_id' => $manager->id,
             ],
         );
@@ -151,35 +189,35 @@ class ReceptionistTestSeeder extends Seeder
         $floorTwo = Floor::firstOrCreate(
             ['number' => '1002'],
             [
-                'name' => 'Seed Floor Two',
+                'name' => 'Nile Wing - Second Floor',
                 'manager_id' => $manager->id,
             ],
         );
 
         $rooms = collect([
             [
-                'number' => '101',
+                'number' => '1101',
                 'capacity' => 2,
                 'price' => 15000,
                 'floor_id' => $floorOne->id,
                 'manager_id' => $manager->id,
             ],
             [
-                'number' => '102',
+                'number' => '1102',
                 'capacity' => 3,
                 'price' => 18500,
                 'floor_id' => $floorOne->id,
                 'manager_id' => $manager->id,
             ],
             [
-                'number' => '201',
+                'number' => '1201',
                 'capacity' => 2,
                 'price' => 21000,
                 'floor_id' => $floorTwo->id,
                 'manager_id' => $manager->id,
             ],
             [
-                'number' => '202',
+                'number' => '1202',
                 'capacity' => 4,
                 'price' => 27500,
                 'floor_id' => $floorTwo->id,
