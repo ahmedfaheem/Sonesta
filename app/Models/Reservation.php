@@ -12,6 +12,7 @@ class Reservation extends Model
         'room_id',
         'accompany_number',
         'paid_price',
+        'checkout_session_id',
         'reservation_date',
     ];
 

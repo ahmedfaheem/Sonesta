@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        return redirect()->intended($this->dashboardRouteFor($user));
+        return redirect()->to($this->dashboardRouteFor($user));
     }
 
     /**
@@ -61,6 +61,7 @@ class AuthenticatedSessionController extends Controller
             $user->hasRole('manager') => route('manager.dashboard', absolute: false),
             $user->hasRole('receptionist') => route('receptionist.dashboard', absolute: false),
             $user->hasRole('client') && ! $user->clientProfile?->is_approved => route('pending-approval', absolute: false),
+            $user->hasRole('client') => route('client.rooms.index', absolute: false),
             default => route('dashboard', absolute: false),
         };
     }

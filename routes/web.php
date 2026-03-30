@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Manager\FloorController;
 use App\Http\Controllers\Manager\RoomController;
+use App\Http\Controllers\Client\ReservationController as ClientReservationController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ManagerController;
 use App\Http\Controllers\Admin\ReceptionistController;
@@ -94,6 +95,24 @@ Route::middleware(['auth', 'role:admin|manager'])->group(function () {
         Route::resource('floors', FloorController::class)->except('show');
         Route::resource('rooms', RoomController::class)->except('show');
     });
+});
+
+Route::middleware(['auth', 'role:client'])->group(function () {
+    Route::prefix('client')->name('client.')->group(function () {
+        Route::get('rooms/available', [ClientReservationController::class, 'availableRooms'])
+            ->name('rooms.index');
+        Route::get('reservations', [ClientReservationController::class, 'index'])
+            ->name('reservations.index');
+    });
+
+    Route::get('reservations/rooms/{room}', [ClientReservationController::class, 'create'])
+        ->name('client.reservations.create');
+    Route::post('reservations/rooms/{room}/checkout', [ClientReservationController::class, 'checkout'])
+        ->name('client.reservations.checkout');
+    Route::get('reservations/success', [ClientReservationController::class, 'success'])
+        ->name('client.reservations.success');
+    Route::get('reservations/cancel/{room?}', [ClientReservationController::class, 'cancel'])
+        ->name('client.reservations.cancel');
 });
 
 require __DIR__.'/auth.php';
