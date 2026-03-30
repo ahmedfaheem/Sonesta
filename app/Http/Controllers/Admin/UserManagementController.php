@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use App\Notifications\ClientApprovedNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
@@ -128,7 +129,13 @@ abstract class UserManagementController extends Controller
             $user->avatar = $this->storeAvatar($request->file('avatar'), $user->avatar);
         }
 
+        $wasApproved = (bool) ($user->exists ? $user->getOriginal('is_approved') : false);
+
         $user->save();
+
+        if ($this->supportsApproval && $this->role === 'client' && ! $wasApproved && $user->is_approved) {
+            $user->notify(new ClientApprovedNotification());
+        }
 
         return $user->fresh('createdBy');
     }
