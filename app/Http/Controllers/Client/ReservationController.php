@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -67,7 +68,7 @@ class ReservationController extends Controller
         ]);
     }
 
-    public function checkout(CheckoutReservationRequest $request, Room $room): RedirectResponse
+    public function checkout(CheckoutReservationRequest $request, Room $room): RedirectResponse|HttpResponse
     {
         $client = $this->approvedClientOrFail($request);
         $accompanyNumber = $request->integer('accompany_number');
