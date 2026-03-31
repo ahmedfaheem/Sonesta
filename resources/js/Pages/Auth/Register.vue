@@ -46,13 +46,19 @@ const markTouched = (field) => {
     touched[field] = true;
 };
 
+const normalizeString = (value) => (typeof value === 'string' ? value : '');
+
 const validations = computed(() => ({
-    name: form.name.trim().length >= 3,
-    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email),
-    national_id: form.national_id.trim() === '' || form.national_id.trim().length >= 8,
-    password: form.password.length >= 6,
-    password_confirmation: form.password_confirmation !== '' && form.password_confirmation === form.password,
-    country: form.country.trim() !== '',
+    name: normalizeString(form.name).trim().length >= 3,
+    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeString(form.email)),
+    national_id:
+        normalizeString(form.national_id).trim() === '' ||
+        normalizeString(form.national_id).trim().length >= 8,
+    password: normalizeString(form.password).length >= 6,
+    password_confirmation:
+        normalizeString(form.password_confirmation) !== '' &&
+        normalizeString(form.password_confirmation) === normalizeString(form.password),
+    country: normalizeString(form.country).trim() !== '',
     gender: ['male', 'female'].includes(form.gender),
 }));
 
