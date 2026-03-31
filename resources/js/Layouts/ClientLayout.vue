@@ -6,24 +6,22 @@ import { computed, ref } from 'vue';
 const page = usePage();
 const navigationOpen = ref(false);
 
-const isActive = (patterns) => {
-    const currentUrl = page.url || '';
+const componentMatches = (prefixes) => {
+    const component = page.component || '';
 
-    return patterns.some((pattern) => {
-        return currentUrl === pattern || currentUrl.startsWith(`${pattern}/`) || currentUrl.startsWith(`${pattern}?`);
-    });
+    return prefixes.some((prefix) => component.startsWith(prefix));
 };
 
 const navigation = computed(() => [
     {
         label: 'Make Reservation',
         href: route('client.rooms.index'),
-        active: isActive(['/client/rooms/available', '/reservations/rooms']),
+        active: componentMatches(['Client/Rooms/', 'Client/Reservations/Create']),
     },
     {
         label: 'My Reservations',
         href: route('client.reservations.index'),
-        active: isActive(['/client/reservations']),
+        active: componentMatches(['Client/Reservations/Index']),
     },
 ]);
 </script>

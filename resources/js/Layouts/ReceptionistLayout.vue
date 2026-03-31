@@ -6,38 +6,32 @@ import { computed, ref } from 'vue';
 const page = usePage();
 const navigationOpen = ref(false);
 
-const isActive = (patterns) => {
-    const currentUrl = page.url || '';
+const componentMatches = (prefixes) => {
+    const component = page.component || '';
 
-    return patterns.some((pattern) => {
-        if (pattern === '/') {
-            return currentUrl === '/';
-        }
-
-        return currentUrl === pattern || currentUrl.startsWith(`${pattern}/`) || currentUrl.startsWith(`${pattern}?`);
-    });
+    return prefixes.some((prefix) => component.startsWith(prefix));
 };
 
 const navigation = computed(() => [
     {
         label: 'Dashboard',
         href: route('receptionist.dashboard'),
-        active: isActive(['/receptionist/dashboard']),
+        active: componentMatches(['Receptionist/Dashboard']),
     },
     {
         label: 'Pending Clients',
         href: route('receptionist.clients.pending'),
-        active: isActive(['/receptionist/clients/pending']),
+        active: componentMatches(['Receptionist/Clients/Pending']),
     },
     {
         label: 'My Approved Clients',
         href: route('receptionist.clients.approved'),
-        active: isActive(['/receptionist/clients/my-approved']),
+        active: componentMatches(['Receptionist/Clients/MyApproved']),
     },
     {
         label: 'Reservations',
         href: route('receptionist.reservations.index'),
-        active: isActive(['/receptionist/reservations']),
+        active: componentMatches(['Receptionist/Reservations/']),
     },
 ]);
 </script>

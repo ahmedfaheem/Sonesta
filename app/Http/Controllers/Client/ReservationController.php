@@ -243,6 +243,17 @@ class ReservationController extends Controller
         ]);
     }
 
+    public function destroy(Request $request, Reservation $reservation): RedirectResponse
+    {
+        $client = $this->approvedClientOrFail($request);
+
+        abort_unless((int) $reservation->client_id === (int) $client->id, 403);
+
+        $reservation->delete();
+
+        return back()->with('success', 'Reservation removed successfully.');
+    }
+
     protected function approvedClientOrFail(Request $request): Client
     {
         $user = $request->user();

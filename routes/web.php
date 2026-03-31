@@ -139,6 +139,8 @@ Route::middleware(['auth', 'role:client'])->group(function () {
             ->name('rooms.index');
         Route::get('reservations', [ClientReservationController::class, 'index'])
             ->name('reservations.index');
+        Route::delete('reservations/{reservation}', [ClientReservationController::class, 'destroy'])
+            ->name('reservations.destroy');
     });
 
     Route::get('reservations/rooms/{room}', [ClientReservationController::class, 'create'])

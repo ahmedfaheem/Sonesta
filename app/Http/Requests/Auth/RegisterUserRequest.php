@@ -25,7 +25,7 @@ class RegisterUserRequest extends FormRequest
             'password' => ['required', 'string', 'min:6', 'confirmed'],
             'avatar' => [
                 'nullable',
-                File::image()->types(['jpg', 'jpeg']),
+                File::image()->types(['jpg', 'jpeg', 'png', 'webp']),
             ],
             'country' => ['required', 'string', 'max:255'],
             'gender' => ['required', 'in:male,female'],

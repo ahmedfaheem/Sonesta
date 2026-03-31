@@ -118,6 +118,6 @@ class ClientController extends Controller
 
         return Str::startsWith($path, ['http://', 'https://'])
             ? $path
-            : Storage::disk('public')->url($path);
+            : asset('storage/'.ltrim($path, '/'));
     }
 }

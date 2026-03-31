@@ -1,7 +1,7 @@
 <script setup>
 import Card from '@/Components/ui/Card.vue';
 import ClientLayout from '@/Layouts/ClientLayout.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 
 defineOptions({
     layout: ClientLayout,
@@ -27,6 +27,16 @@ const formatDate = (value) => {
         minute: '2-digit',
     }).format(new Date(value));
 };
+
+const removeReservation = (reservationId) => {
+    if (!window.confirm('Remove this reservation?')) {
+        return;
+    }
+
+    router.delete(route('client.reservations.destroy', reservationId), {
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -45,6 +55,7 @@ const formatDate = (value) => {
                             <th class="px-6 py-4">Accompany Number</th>
                             <th class="px-6 py-4">Paid Price</th>
                             <th class="px-6 py-4">Reservation Date</th>
+                            <th class="px-6 py-4 text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white text-sm text-slate-700">
@@ -53,9 +64,18 @@ const formatDate = (value) => {
                             <td class="px-6 py-4">{{ reservation.accompany_number }}</td>
                             <td class="px-6 py-4">${{ reservation.paid_price_dollars }}</td>
                             <td class="px-6 py-4">{{ formatDate(reservation.reservation_date) }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <button
+                                    type="button"
+                                    class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50"
+                                    @click="removeReservation(reservation.id)"
+                                >
+                                    Remove
+                                </button>
+                            </td>
                         </tr>
                         <tr v-if="reservations.data.length === 0">
-                            <td colspan="4" class="px-6 py-16 text-center text-sm text-slate-500">
+                            <td colspan="5" class="px-6 py-16 text-center text-sm text-slate-500">
                                 You do not have any reservations yet.
                             </td>
                         </tr>

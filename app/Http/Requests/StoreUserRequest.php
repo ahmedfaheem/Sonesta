@@ -26,7 +26,7 @@ class StoreUserRequest extends FormRequest
             'avatar' => [
                 'nullable',
                 File::image()
-                    ->types(['jpg', 'jpeg']),
+                    ->types(['jpg', 'jpeg', 'png', 'webp']),
             ],
         ];
     }
