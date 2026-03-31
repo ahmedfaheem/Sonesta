@@ -133,7 +133,13 @@ php artisan config:clear
 php artisan cache:clear
 ```
 
-#### 6. Run migrations and seed all default data
+#### 6. Link public storage for uploaded images
+
+```bash
+php artisan storage:link
+```
+
+#### 7. Run migrations and seed all default data
 
 For a fresh local install:
 
@@ -141,7 +147,7 @@ For a fresh local install:
 php artisan migrate:fresh --seed
 ```
 
-#### 7. Start the development servers
+#### 8. Start the development servers
 
 Start the full development workflow:
 

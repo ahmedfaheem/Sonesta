@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -36,9 +37,8 @@ abstract class UserManagementController extends Controller
 
     public function index(Request $request): Response
     {
-        $users = QueryBuilder::for(User::class)
+        $users = QueryBuilder::for($this->usersQuery())
             ->with('createdBy')
-            ->role($this->role)
             ->allowedFilters(
                 AllowedFilter::partial('name'),
                 AllowedFilter::partial('email'),
@@ -109,6 +109,18 @@ abstract class UserManagementController extends Controller
     {
         $user = $this->ensureUserMatchesRole($user);
 
+        if ($this->role === 'manager') {
+            $hasFloors = $user->floors()->exists();
+            $hasRooms = $user->rooms()->exists();
+            $hasReceptionists = $user->createdUsers()
+                ->whereHas('roles', fn (Builder $query) => $query->where('name', 'receptionist'))
+                ->exists();
+
+            if ($hasFloors || $hasRooms || $hasReceptionists) {
+                return back()->with('error', 'Manager cannot be deleted while assigned to floors, rooms, or receptionists.');
+            }
+        }
+
         if ($user->avatar) {
             Storage::disk('public')->delete($user->avatar);
         }
@@ -120,9 +132,15 @@ abstract class UserManagementController extends Controller
 
     protected function usersQuery(): Builder
     {
-        return User::query()
+        $query = User::query()
             ->with('createdBy')
             ->role($this->role);
+
+        if ($this->role === 'receptionist' && auth()->user()?->hasRole('manager')) {
+            $query->where('created_by', auth()->id());
+        }
+
+        return $query;
     }
 
     protected function saveUser(User $user, StoreUserRequest|UpdateUserRequest $request): User
@@ -135,7 +153,11 @@ abstract class UserManagementController extends Controller
         $user->created_by = $user->exists ? $user->created_by : $request->user()->id;
 
         if ($this->supportsApproval) {
-            $user->is_approved = (bool) ($validated['is_approved'] ?? $user->is_approved ?? false);
+            $defaultApproval = $user->exists ? (bool) $user->is_approved : true;
+            $user->is_approved = (bool) ($validated['is_approved'] ?? $defaultApproval);
+        } elseif (! $user->exists) {
+            // Non-client managed users should be active by default.
+            $user->is_approved = true;
         }
 
         if (! empty($validated['password'])) {
@@ -164,6 +186,14 @@ abstract class UserManagementController extends Controller
     {
         abort_unless($user->hasRole($this->role), HttpResponse::HTTP_NOT_FOUND);
 
+        if (
+            $this->role === 'receptionist'
+            && auth()->user()?->hasRole('manager')
+            && (int) $user->created_by !== (int) auth()->id()
+        ) {
+            abort(HttpResponse::HTTP_FORBIDDEN);
+        }
+
         return $user;
     }
 
@@ -175,12 +205,39 @@ abstract class UserManagementController extends Controller
             'email' => $user->email,
             'national_id' => $user->national_id,
             'avatar' => $user->avatar,
-            'avatar_url' => $user->avatar ? asset('storage/'.$user->avatar) : null,
+            'avatar_url' => $this->avatarUrl($user->avatar),
             'created_at' => $user->created_at?->toISOString(),
             'created_by' => $user->created_by,
             'created_by_name' => $user->createdBy?->name,
-            'is_approved' => (bool) $user->is_approved,
+            'is_approved' => $this->isApproved($user),
         ];
+    }
+
+    protected function isApproved(User $user): bool
+    {
+        if ($this->role === 'manager') {
+            return ! $this->isManagerBanned($user);
+        }
+
+        return (bool) $user->is_approved;
+    }
+
+    protected function isManagerBanned(User $user): bool
+    {
+        $rawApproval = $user->getRawOriginal('is_approved');
+
+        return (int) $rawApproval === 0 && ! is_null($user->approved_by);
+    }
+
+    protected function avatarUrl(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        return Str::startsWith($path, ['http://', 'https://'])
+            ? $path
+            : Storage::disk('public')->url($path);
     }
 
     protected function page(string $name): string

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Manager\FloorController;
+use App\Http\Controllers\Manager\ReceptionistController as ManagerReceptionistController;
 use App\Http\Controllers\Manager\RoomController;
 use App\Http\Controllers\Client\ReservationController as ClientReservationController;
 use App\Http\Controllers\Admin\ClientController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Receptionist\ReservationController as ReceptionistReser
 use App\Http\Controllers\ProfileController;
 use App\Models\Room;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -32,7 +34,35 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
+Route::get('/dashboard', function (Request $request) {
+    $user = $request->user();
+
+    if (! $user) {
+        return redirect()->route('login');
+    }
+
+    if ($user->hasRole('admin')) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    if ($user->hasRole('manager')) {
+        return redirect()->route('manager.dashboard');
+    }
+
+    if ($user->hasRole('receptionist')) {
+        return redirect()->route('receptionist.dashboard');
+    }
+
+    $clientProfile = $user->clientProfile;
+
+    if ($user->hasRole('client') && ! ($clientProfile && $clientProfile->is_approved)) {
+        return redirect()->route('pending-approval');
+    }
+
+    if ($user->hasRole('client')) {
+        return redirect()->route('client.rooms.index');
+    }
+
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -61,6 +91,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
         Route::resource('managers', ManagerController::class)
             ->parameters(['managers' => 'user']);
+        Route::patch('managers/{user}/ban', [ManagerController::class, 'toggleBan'])
+            ->name('managers.ban');
         Route::resource('receptionists', ReceptionistController::class)
             ->parameters(['receptionists' => 'user']);
         Route::resource('clients', ClientController::class)
@@ -96,6 +128,8 @@ Route::middleware(['auth', 'role:admin|manager'])->group(function () {
     Route::prefix('manager')->name('manager.')->group(function () {
         Route::resource('floors', FloorController::class)->except('show');
         Route::resource('rooms', RoomController::class)->except('show');
+        Route::resource('receptionists', ManagerReceptionistController::class)
+            ->parameters(['receptionists' => 'user']);
     });
 });
 

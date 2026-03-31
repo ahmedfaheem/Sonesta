@@ -1,6 +1,7 @@
 <script setup>
 import DeleteConfirmationDialog from '@/Components/Admin/DeleteConfirmationDialog.vue';
 import UserTable from '@/Components/Admin/UserTable.vue';
+import Badge from '@/Components/ui/Badge.vue';
 import Button from '@/Components/ui/Button.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
@@ -39,6 +40,12 @@ const deleteManager = () => {
         },
     });
 };
+
+const toggleBan = (manager) => {
+    router.patch(route('admin.managers.ban', manager.id), {}, {
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -53,9 +60,15 @@ const deleteManager = () => {
             @delete="confirmDelete"
         >
             <template #actions="{ row }">
+                <Badge :variant="row.is_approved ? 'success' : 'warning'">
+                    {{ row.is_approved ? 'Active' : 'Banned' }}
+                </Badge>
                 <Link :href="route('admin.managers.edit', row.id)">
                     <Button variant="secondary" size="sm">Edit</Button>
                 </Link>
+                <Button variant="secondary" size="sm" @click="toggleBan(row)">
+                    {{ row.is_approved ? 'Ban' : 'Unban' }}
+                </Button>
                 <Button variant="destructive" size="sm" @click="confirmDelete(row)">Delete</Button>
             </template>
         </UserTable>

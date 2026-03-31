@@ -71,6 +71,7 @@ const formatDate = (value) => {
                     <thead class="bg-slate-50">
                         <tr class="text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                             <th class="px-6 py-4">Client</th>
+                            <th class="px-6 py-4">Phone</th>
                             <th class="px-6 py-4">Country</th>
                             <th class="px-6 py-4">Gender</th>
                             <th class="px-6 py-4">Registered</th>
@@ -89,6 +90,7 @@ const formatDate = (value) => {
                                     </div>
                                 </div>
                             </td>
+                            <td class="px-6 py-4">{{ client.phone || '-' }}</td>
                             <td class="px-6 py-4">{{ client.country || '-' }}</td>
                             <td class="px-6 py-4 capitalize">{{ client.gender || '-' }}</td>
                             <td class="px-6 py-4">{{ formatDate(client.created_at) }}</td>
@@ -102,7 +104,7 @@ const formatDate = (value) => {
                             </td>
                         </tr>
                         <tr v-if="tableIsEmpty">
-                            <td colspan="6" class="px-6 py-16 text-center text-sm text-slate-500">
+                            <td colspan="7" class="px-6 py-16 text-center text-sm text-slate-500">
                                 No pending clients right now.
                             </td>
                         </tr>

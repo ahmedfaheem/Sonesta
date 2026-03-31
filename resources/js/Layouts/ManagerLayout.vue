@@ -15,6 +15,7 @@ const dashboardLabel = computed(() => (isAdmin.value ? 'Admin Dashboard' : 'Dash
 
 const navigation = computed(() => [
     { label: dashboardLabel.value, href: dashboardHref.value, active: route().current(isAdmin.value ? 'admin.dashboard' : 'manager.dashboard') },
+    { label: 'Receptionists', href: route(`${resourceRoutePrefix.value}.receptionists.index`), active: route().current('manager.receptionists.*') || route().current('admin.receptionists.*') },
     { label: 'Floors', href: route(`${resourceRoutePrefix.value}.floors.index`), active: route().current('manager.floors.*') || route().current('admin.floors.*') },
     { label: 'Rooms', href: route(`${resourceRoutePrefix.value}.rooms.index`), active: route().current('manager.rooms.*') || route().current('admin.rooms.*') },
 ]);
@@ -52,9 +53,6 @@ const navigation = computed(() => [
                 <div class="mt-10 rounded-2xl bg-slate-950 p-5 text-white">
                     <p class="text-sm font-medium">{{ page.props.auth.user?.name }}</p>
                     <p class="mt-1 text-xs text-slate-300">{{ page.props.auth.user?.email }}</p>
-                    <Link :href="route('logout')" method="post" as="button" class="mt-4 text-sm font-medium text-white/90">
-                        Sign out
-                    </Link>
                 </div>
             </aside>
 
@@ -66,9 +64,15 @@ const navigation = computed(() => [
                             <p class="text-lg font-semibold text-slate-950">Floors &amp; Rooms</p>
                         </div>
 
-                        <Button variant="secondary" class="sm:hidden" @click="navigationOpen = !navigationOpen">
-                            Menu
-                        </Button>
+                        <div class="flex items-center gap-2">
+                            <Link :href="route('logout')" method="post" as="button">
+                                <Button variant="secondary">Sign out</Button>
+                            </Link>
+
+                            <Button variant="secondary" class="sm:hidden" @click="navigationOpen = !navigationOpen">
+                                Menu
+                            </Button>
+                        </div>
                     </div>
                 </header>
 
@@ -78,6 +82,13 @@ const navigation = computed(() => [
                         class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
                     >
                         {{ page.props.flash.success }}
+                    </div>
+
+                    <div
+                        v-if="page.props.flash?.error"
+                        class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+                    >
+                        {{ page.props.flash.error }}
                     </div>
 
                     <slot />

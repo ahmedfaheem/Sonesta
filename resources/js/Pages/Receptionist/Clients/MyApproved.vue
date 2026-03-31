@@ -42,6 +42,7 @@ const formatDate = (value) => {
                     <thead class="bg-slate-50">
                         <tr class="text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                             <th class="px-6 py-4">Client</th>
+                            <th class="px-6 py-4">Phone</th>
                             <th class="px-6 py-4">Country</th>
                             <th class="px-6 py-4">Gender</th>
                             <th class="px-6 py-4">Status</th>
@@ -59,6 +60,7 @@ const formatDate = (value) => {
                                     </div>
                                 </div>
                             </td>
+                            <td class="px-6 py-4">{{ client.phone || '-' }}</td>
                             <td class="px-6 py-4">{{ client.country || '-' }}</td>
                             <td class="px-6 py-4 capitalize">{{ client.gender || '-' }}</td>
                             <td class="px-6 py-4">
@@ -67,7 +69,7 @@ const formatDate = (value) => {
                             <td class="px-6 py-4">{{ formatDate(client.approved_at) }}</td>
                         </tr>
                         <tr v-if="clients.data.length === 0">
-                            <td colspan="5" class="px-6 py-16 text-center text-sm text-slate-500">
+                            <td colspan="6" class="px-6 py-16 text-center text-sm text-slate-500">
                                 You have not approved any clients yet.
                             </td>
                         </tr>

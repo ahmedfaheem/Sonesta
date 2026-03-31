@@ -18,6 +18,8 @@ class ReceptionistTestSeeder extends Seeder
      */
     public function run(): void
     {
+        $manager = $this->createManager();
+
         $receptionists = collect([
             [
                 'name' => 'Nour Hassan',
@@ -29,9 +31,8 @@ class ReceptionistTestSeeder extends Seeder
                 'email' => 'layla.farouk@test.com',
                 'national_id' => '90000000000002',
             ],
-        ])->map(fn (array $attributes) => $this->createReceptionist($attributes));
+        ])->map(fn (array $attributes) => $this->createReceptionist($attributes, $manager));
 
-        $manager = $this->createManager();
         $rooms = $this->ensureRooms($manager);
 
         collect([
@@ -136,7 +137,7 @@ class ReceptionistTestSeeder extends Seeder
         });
     }
 
-    protected function createReceptionist(array $attributes): User
+    protected function createReceptionist(array $attributes, User $manager): User
     {
         $user = User::updateOrCreate(
             ['email' => $attributes['email']],
@@ -144,6 +145,7 @@ class ReceptionistTestSeeder extends Seeder
                 'name' => $attributes['name'],
                 'password' => Hash::make('123456'),
                 'national_id' => $attributes['national_id'],
+                'created_by' => $manager->id,
                 'is_approved' => true,
                 'approved_by' => null,
             ],

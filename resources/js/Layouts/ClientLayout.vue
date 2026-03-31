@@ -60,9 +60,6 @@ const navigation = computed(() => [
                 <div class="mt-10 rounded-2xl bg-slate-950 p-5 text-white">
                     <p class="text-sm font-medium">{{ page.props.auth.user?.name }}</p>
                     <p class="mt-1 text-xs text-slate-300">{{ page.props.auth.user?.email }}</p>
-                    <Link :href="route('logout')" method="post" as="button" class="mt-4 text-sm font-medium text-white/90">
-                        Sign out
-                    </Link>
                 </div>
             </aside>
 
@@ -74,9 +71,15 @@ const navigation = computed(() => [
                             <p class="text-lg font-semibold text-slate-950">Client Reservations</p>
                         </div>
 
-                        <Button variant="secondary" class="sm:hidden" @click="navigationOpen = !navigationOpen">
-                            Menu
-                        </Button>
+                        <div class="flex items-center gap-2">
+                            <Link :href="route('logout')" method="post" as="button">
+                                <Button variant="secondary">Sign out</Button>
+                            </Link>
+
+                            <Button variant="secondary" class="sm:hidden" @click="navigationOpen = !navigationOpen">
+                                Menu
+                            </Button>
+                        </div>
                     </div>
                 </header>
 

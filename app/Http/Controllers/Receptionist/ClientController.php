@@ -9,6 +9,8 @@ use App\Notifications\ClientApprovedNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -96,8 +98,8 @@ class ClientController extends Controller
             'id' => $client->id,
             'name' => $client->name,
             'email' => $client->email,
-            'avatar_url' => $client->avatar ? asset('storage/'.$client->avatar) : null,
-            'national_id' => $client->national_id,
+            'avatar_url' => $this->avatarUrl($client->avatar),
+            'phone' => $client->national_id,
             'country' => $profile?->country,
             'gender' => $profile?->gender,
             'is_approved' => (bool) $profile?->is_approved,
@@ -106,5 +108,16 @@ class ClientController extends Controller
             'created_at' => $client->created_at?->toISOString(),
             'approved_at' => $profile?->updated_at?->toISOString(),
         ];
+    }
+
+    protected function avatarUrl(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        return Str::startsWith($path, ['http://', 'https://'])
+            ? $path
+            : Storage::disk('public')->url($path);
     }
 }

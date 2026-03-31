@@ -62,6 +62,18 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $isManagerBanned = $user?->hasRole('manager')
+            && (int) $user->getRawOriginal('is_approved') === 0
+            && ! is_null($user->approved_by);
+
+        if ($isManagerBanned) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Your manager account is banned. Please contact an administrator.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
