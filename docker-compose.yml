@@ -64,23 +64,6 @@ services:
     depends_on:
       - app
 
-  # # Laravel scheduler
-  # scheduler:
-  #   image: sonesta-app
-  #   container_name: sonesta-scheduler
-  #   restart: unless-stopped
-  #   tty: true
-  #   working_dir: /var/www
-  #   command: sh -c "[ ! -d /var/www/vendor ] && composer install --no-interaction --prefer-dist || true && php artisan schedule:work"
-  #   volumes:
-  #     - ./:/var/www
-  #     - ./storage:/var/www/storage
-  #     - ./bootstrap/cache:/var/www/bootstrap/cache
-  #   networks:
-  #     - sonesta-network
-  #   depends_on:
-  #     - app
-
 networks:
   sonesta-network:
     driver: bridge
