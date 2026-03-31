@@ -1,7 +1,7 @@
 <script setup>
 import Button from '@/Components/ui/Button.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 const page = usePage();
 const navigationOpen = ref(false);
@@ -26,6 +26,24 @@ const navigation = computed(() => [
         active: isActive(['/client/reservations']),
     },
 ]);
+
+const closeNavigation = () => {
+    navigationOpen.value = false;
+};
+
+const handleKeydown = (event) => {
+    if (event.key === 'Escape') {
+        closeNavigation();
+    }
+};
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeydown);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>
@@ -33,16 +51,22 @@ const navigation = computed(() => [
 
     <div class="min-h-screen bg-slate-100">
         <div class="flex min-h-screen">
+            <div
+                v-if="navigationOpen"
+                class="fixed inset-0 z-30 bg-slate-950/30 backdrop-blur-[1px] lg:hidden"
+                @click="closeNavigation"
+            />
+
             <aside
-                class="fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-200 bg-white px-6 py-8 transition sm:static"
-                :class="navigationOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'"
+                class="fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-200 bg-white px-6 py-8 transition lg:static"
+                :class="navigationOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
             >
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Sonesta</p>
                         <h1 class="mt-2 text-2xl font-semibold text-slate-950">Client Portal</h1>
                     </div>
-                    <button class="sm:hidden" @click="navigationOpen = false">Close</button>
+                    <button class="lg:hidden" @click="closeNavigation">Close</button>
                 </div>
 
                 <nav class="mt-10 space-y-2">
@@ -74,7 +98,7 @@ const navigation = computed(() => [
                             <p class="text-lg font-semibold text-slate-950">Client Reservations</p>
                         </div>
 
-                        <Button variant="secondary" class="sm:hidden" @click="navigationOpen = !navigationOpen">
+                        <Button variant="secondary" class="lg:hidden" @click="navigationOpen = !navigationOpen">
                             Menu
                         </Button>
                     </div>

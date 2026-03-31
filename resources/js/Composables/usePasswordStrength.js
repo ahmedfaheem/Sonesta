@@ -17,8 +17,9 @@ export function usePasswordStrength(password) {
     const label = computed(() => {
         if (!password.value) return 'Empty';
         if (score.value <= 2) return 'Weak';
-        if (score.value <= 4) return 'Medium';
-        return 'Strong';
+        if (score.value === 3) return 'Medium';
+        if (score.value === 4) return 'Strong';
+        return 'Amazing';
     });
 
     const percentage = computed(() => Math.min((score.value / 5) * 100, 100));
@@ -26,8 +27,9 @@ export function usePasswordStrength(password) {
     const tone = computed(() => {
         if (!password.value) return 'bg-slate-200';
         if (score.value <= 2) return 'bg-red-500';
-        if (score.value <= 4) return 'bg-amber-500';
-        return 'bg-emerald-500';
+        if (score.value === 3) return 'bg-amber-500';
+        if (score.value === 4) return 'bg-emerald-500';
+        return 'bg-blue-500';
     });
 
     return {
