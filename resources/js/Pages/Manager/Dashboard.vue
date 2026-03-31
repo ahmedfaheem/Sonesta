@@ -4,7 +4,9 @@ import Button from '@/Components/ui/Button.vue';
 import Card from '@/Components/ui/Card.vue';
 import ManagerLayout from '@/Layouts/ManagerLayout.vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import axios from 'axios';
+import Chart from 'chart.js/auto';
 
 defineOptions({
     layout: ManagerLayout,
@@ -13,6 +15,50 @@ defineOptions({
 const page = usePage();
 
 const isAdmin = computed(() => (page.props.auth.user?.roles ?? []).includes('admin'));
+
+const topClientsChartCanvas = ref(null);
+
+const buildTopClientsChart = (labels, values) => {
+    if (!topClientsChartCanvas.value) {
+        return;
+    }
+
+    new Chart(topClientsChartCanvas.value, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Reservations',
+                    data: values,
+                    backgroundColor: '#38bdf8',
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    precision: 0,
+                },
+            },
+        },
+    });
+};
+
+onMounted(async () => {
+    try {
+        const response = await axios.get(route('api.analytics.top_clients'));
+
+        buildTopClientsChart(
+            response.data.data.map((item) => item.name),
+            response.data.data.map((item) => item.reservations_count),
+        );
+    } catch (error) {
+        // ignore chart errors for now
+    }
+});
 
 const modules = [
     {
@@ -114,6 +160,23 @@ const modules = [
                         <Link :href="route(module.createRoute)">
                             <Button variant="secondary">Create {{ module.title.slice(0, -1).toLowerCase() }}</Button>
                         </Link>
+                    </div>
+                </div>
+            </Card>
+        </section>
+
+        <section>
+            <Card class="overflow-hidden border-0 shadow-sm">
+                <div class="h-2 w-full bg-gradient-to-r from-sky-500 to-cyan-500" />
+                <div class="space-y-5 p-6">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-slate-950">Top Clients</h2>
+                        <p class="mt-2 text-sm leading-6 text-slate-600">
+                            Active clients ranked by reservation volume, loaded from the analytics API.
+                        </p>
+                    </div>
+                    <div class="h-72">
+                        <canvas ref="topClientsChartCanvas" class="h-full w-full"></canvas>
                     </div>
                 </div>
             </Card>

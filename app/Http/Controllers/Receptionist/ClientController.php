@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Receptionist;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Receptionist\ApproveClientRequest;
 use App\Models\User;
+use App\Notifications\ClientApprovedNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,6 +41,8 @@ class ClientController extends Controller
             'is_approved' => true,
             'approved_by' => $request->user()->id,
         ]);
+
+        $client->notify(new ClientApprovedNotification());
 
         return back()->with('success', "{$client->name} approved successfully.");
     }

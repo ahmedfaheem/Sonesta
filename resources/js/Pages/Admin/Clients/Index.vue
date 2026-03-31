@@ -43,6 +43,12 @@ const deleteClient = () => {
 
 <template>
     <div>
+        <div class="mb-4 flex flex-wrap items-center justify-end gap-3">
+            <a :href="route('admin.clients.export')" class="inline-flex">
+                <Button variant="secondary">Export clients</Button>
+            </a>
+        </div>
+
         <UserTable
             title="Clients"
             description="Manage client accounts and their approval state."
