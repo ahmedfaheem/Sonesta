@@ -65,6 +65,25 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('manager.dashboard', absolute: false));
     }
 
+    public function test_banned_receptionist_users_can_not_login(): void
+    {
+        Role::create(['name' => 'receptionist', 'guard_name' => 'web']);
+
+        $user = User::factory()->create([
+            'is_approved' => false,
+            'approved_by' => 1,
+        ]);
+        $user->assignRole('receptionist');
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
+    }
+
     public function test_pending_client_users_can_not_login(): void
     {
         Role::create(['name' => 'client', 'guard_name' => 'web']);

@@ -74,6 +74,18 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $isReceptionistBanned = $user?->hasRole('receptionist')
+            && (int) $user->getRawOriginal('is_approved') === 0
+            && ! is_null($user->approved_by);
+
+        if ($isReceptionistBanned) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Your receptionist account is banned. Please contact a manager.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
