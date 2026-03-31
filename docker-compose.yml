@@ -12,7 +12,7 @@ services:
       SERVICE_NAME: app
       SERVICE_TAGS: dev
     working_dir: /var/www
-    command: sh -c "mkdir -p /var/www/database && touch /var/www/database/database.sqlite && mkdir -p /var/www/storage/framework/cache /var/www/storage/framework/data /var/www/storage/framework/sessions /var/www/storage/framework/views /var/www/bootstrap/cache && [ -f /var/www/.env ] || cp /var/www/.env.example /var/www/.env && php artisan key:generate --force && php artisan migrate --force && php artisan config:clear && php artisan cache:clear && php artisan view:clear && npm ci && npm run build && chown -R www-data:www-data /var/www/database /var/www/storage /var/www/bootstrap/cache && chmod -R 775 /var/www/database /var/www/storage /var/www/bootstrap/cache && php-fpm"
+    command: sh -c "mkdir -p /var/www/database && touch /var/www/database/database.sqlite && mkdir -p /var/www/storage/framework/cache /var/www/storage/framework/data /var/www/storage/framework/sessions /var/www/storage/framework/views /var/www/bootstrap/cache && [ -f /var/www/.env ] || cp /var/www/.env.example /var/www/.env && php artisan key:generate --force && php artisan migrate --force && php artisan config:clear && php artisan cache:clear && php artisan view:clear && npm ci && npm run build && chown -R www-data:www-data /var/www/database /var/www/storage /var/www/bootstrap/cache && chmod -R 777 /var/www/database /var/www/storage /var/www/bootstrap/cache && php-fpm"
     volumes:
       - ./:/var/www
       - /var/www/vendor

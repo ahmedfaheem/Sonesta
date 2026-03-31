@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\RoomsController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/rooms', [RoomsController::class, 'index']);
 
     Route::prefix('analytics')->name('api.analytics.')->group(function () {
