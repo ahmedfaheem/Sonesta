@@ -8,11 +8,14 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 abstract class UserManagementController extends Controller
@@ -31,13 +34,28 @@ abstract class UserManagementController extends Controller
 
     protected bool $supportsApproval = false;
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $users = QueryBuilder::for(User::class)
+            ->with('createdBy')
+            ->role($this->role)
+            ->allowedFilters(
+                AllowedFilter::partial('name'),
+                AllowedFilter::partial('email'),
+                AllowedFilter::exact('is_approved')
+            )
+            ->allowedSorts(
+                'name',
+                'email',
+                'created_at'
+            )
+            ->defaultSort('-created_at')
+            ->paginate($request->integer('per_page', 10))
+            ->withQueryString()
+            ->through(fn (User $user) => $this->serializeUser($user));
+
         return Inertia::render($this->page('Index'), [
-            $this->collectionKey => $this->usersQuery()
-                ->latest()
-                ->paginate(10)
-                ->through(fn (User $user) => $this->serializeUser($user)),
+            $this->collectionKey => $users,
         ]);
     }
 

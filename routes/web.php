@@ -57,6 +57,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     })->name('admin.dashboard');
 
     Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('clients/export', [ClientController::class, 'export'])->name('clients.export');
+
         Route::resource('managers', ManagerController::class)
             ->parameters(['managers' => 'user']);
         Route::resource('receptionists', ReceptionistController::class)

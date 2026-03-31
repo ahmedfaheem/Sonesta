@@ -73,6 +73,24 @@ class ReceptionistTestSeeder extends Seeder
                 'is_approved' => true,
                 'approved_by' => $receptionists[1]->id,
             ],
+            [
+                'name' => 'Approved Client 4',
+                'email' => 'approvedclient4@test.com',
+                'national_id' => '92000000000004',
+                'country' => 'France',
+                'gender' => 'female',
+                'is_approved' => true,
+                'approved_by' => $receptionists[1]->id,
+            ],
+            [
+                'name' => 'Approved Client 5',
+                'email' => 'approvedclient5@test.com',
+                'national_id' => '92000000000005',
+                'country' => 'Germany',
+                'gender' => 'male',
+                'is_approved' => true,
+                'approved_by' => $receptionists[0]->id,
+            ],
         ])->map(fn (array $attributes) => $this->createClient($attributes));
 
         $approvedClients->each(function (User $user, int $index) use ($rooms): void {
@@ -82,18 +100,19 @@ class ReceptionistTestSeeder extends Seeder
                 return;
             }
 
-            foreach (range(1, 2) as $reservationIndex) {
+            foreach (range(1, 3) as $reservationIndex) {
                 $room = $rooms[($index + $reservationIndex - 1) % $rooms->count()];
+                $daysAgo = 7 + ($index * 10) + ($reservationIndex * 14);
 
                 Reservation::updateOrCreate(
                     [
                         'client_id' => $client->id,
                         'room_id' => $room->id,
-                        'reservation_date' => now()->subDays(($index * 2) + $reservationIndex),
+                        'reservation_date' => now()->subDays($daysAgo),
                     ],
                     [
                         'accompany_number' => ($index + $reservationIndex) % 3,
-                        'paid_price' => $room->price + (($index + 1) * 2500) + ($reservationIndex * 1250),
+                        'paid_price' => $room->price + (($index + 1) * 3000) + ($reservationIndex * 1500),
                     ],
                 );
             }

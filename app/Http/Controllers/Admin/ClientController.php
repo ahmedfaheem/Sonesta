@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\ClientsExport;
+
 class ClientController extends UserManagementController
 {
     protected string $role = 'client';
@@ -21,5 +23,10 @@ class ClientController extends UserManagementController
     protected function hasDedicatedShowPage(): bool
     {
         return true;
+    }
+
+    public function export()
+    {
+        return (new ClientsExport())->download('clients-'.now()->format('YmdHis').'.xlsx');
     }
 }
