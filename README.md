@@ -168,6 +168,8 @@ The project includes a `Dockerfile` and `docker-compose.yml` for an easy contain
 docker compose up -d --build
 ```
 
+This now starts the web, app, queue, and scheduler services.
+
 #### 2. Install dependencies inside the container
 
 ```bash
