@@ -58,6 +58,7 @@ class RegisteredUserController extends Controller
             'user_id' => $user->id,
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
             'avatar' => $user->avatar,
             'country' => $validated['country'],
             'gender' => $validated['gender'],

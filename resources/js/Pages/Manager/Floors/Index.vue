@@ -23,6 +23,9 @@ const props = defineProps({
 
 const page = usePage();
 const routePrefix = computed(() => ((page.props.auth.user?.roles ?? []).includes('admin') ? 'admin' : 'manager'));
+const isAdmin = computed(() => (page.props.auth.user?.roles ?? []).includes('admin'));
+const authUserId = computed(() => page.props.auth.user?.id);
+const canManageFloor = (floor) => isAdmin.value || Number(floor.manager_id) === Number(authUserId.value);
 
 const form = reactive({
     search: props.filters.search ?? '',
@@ -111,7 +114,7 @@ const deleteFloor = (floor) => {
                     <tr class="text-left text-sm font-semibold text-slate-600">
                         <th class="px-6 py-4">Name</th>
                         <th class="px-6 py-4">Number</th>
-                        <th class="px-6 py-4">Manager</th>
+                        <th v-if="isAdmin" class="px-6 py-4">Manager</th>
                         <th class="px-6 py-4">Rooms</th>
                         <th class="px-6 py-4">Actions</th>
                     </tr>
@@ -120,14 +123,21 @@ const deleteFloor = (floor) => {
                     <tr v-for="floor in floors.data" :key="floor.id">
                         <td class="px-6 py-4 font-medium text-slate-900">{{ floor.name }}</td>
                         <td class="px-6 py-4">{{ floor.number }}</td>
-                        <td class="px-6 py-4">{{ floor.manager_name }}</td>
+                        <td v-if="isAdmin" class="px-6 py-4">{{ floor.manager_name }}</td>
                         <td class="px-6 py-4">{{ floor.rooms_count }}</td>
                         <td class="px-6 py-4">
                             <div class="flex gap-2">
-                                <Link :href="route(`${routePrefix}.floors.edit`, floor.id)">
+                                <Link v-if="canManageFloor(floor)" :href="route(`${routePrefix}.floors.edit`, floor.id)">
                                     <Button variant="secondary" size="sm">Edit</Button>
                                 </Link>
-                                <Button variant="destructive" size="sm" @click="deleteFloor(floor)">Delete</Button>
+                                <Button
+                                    v-if="canManageFloor(floor)"
+                                    variant="destructive"
+                                    size="sm"
+                                    @click="deleteFloor(floor)"
+                                >
+                                    Delete
+                                </Button>
                             </div>
                         </td>
                     </tr>

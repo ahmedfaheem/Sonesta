@@ -99,7 +99,7 @@ class ClientController extends Controller
             'name' => $client->name,
             'email' => $client->email,
             'avatar_url' => $this->avatarUrl($client->avatar),
-            'phone' => $client->national_id,
+            'phone' => $profile?->phone,
             'country' => $profile?->country,
             'gender' => $profile?->gender,
             'is_approved' => (bool) $profile?->is_approved,

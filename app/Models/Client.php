@@ -12,6 +12,7 @@ class Client extends Model
         'user_id',
         'name',
         'email',
+        'phone',
         'avatar',
         'country',
         'gender',

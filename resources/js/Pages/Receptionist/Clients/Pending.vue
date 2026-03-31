@@ -60,9 +60,15 @@ const formatDate = (value) => {
 
 <template>
     <div class="space-y-6">
-        <div>
-            <h1 class="text-3xl font-semibold tracking-tight text-slate-950">Pending Clients</h1>
-            <p class="mt-1 text-sm text-slate-600">Review client registrations that are waiting for approval at the front desk.</p>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+                <h1 class="text-3xl font-semibold tracking-tight text-slate-950">Pending Clients</h1>
+                <p class="mt-1 text-sm text-slate-600">Review client registrations that are waiting for approval at the front desk.</p>
+            </div>
+
+            <Link :href="route('logout')" method="post" as="button">
+                <Button variant="secondary">Logout</Button>
+            </Link>
         </div>
 
         <Card>

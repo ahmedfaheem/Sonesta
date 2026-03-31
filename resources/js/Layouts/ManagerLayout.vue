@@ -16,6 +16,7 @@ const dashboardLabel = computed(() => (isAdmin.value ? 'Admin Dashboard' : 'Dash
 const navigation = computed(() => [
     { label: dashboardLabel.value, href: dashboardHref.value, active: route().current(isAdmin.value ? 'admin.dashboard' : 'manager.dashboard') },
     { label: 'Receptionists', href: route(`${resourceRoutePrefix.value}.receptionists.index`), active: route().current('manager.receptionists.*') || route().current('admin.receptionists.*') },
+    { label: 'Clients', href: route(`${resourceRoutePrefix.value}.clients.index`), active: route().current('manager.clients.*') || route().current('admin.clients.*') },
     { label: 'Floors', href: route(`${resourceRoutePrefix.value}.floors.index`), active: route().current('manager.floors.*') || route().current('admin.floors.*') },
     { label: 'Rooms', href: route(`${resourceRoutePrefix.value}.rooms.index`), active: route().current('manager.rooms.*') || route().current('admin.rooms.*') },
 ]);

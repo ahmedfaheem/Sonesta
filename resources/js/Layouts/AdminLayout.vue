@@ -11,6 +11,7 @@ const navigation = computed(() => [
     { label: 'Managers', href: route('admin.managers.index'), active: route().current('admin.managers.*') },
     { label: 'Receptionists', href: route('admin.receptionists.index'), active: route().current('admin.receptionists.*') },
     { label: 'Clients', href: route('admin.clients.index'), active: route().current('admin.clients.*') },
+    { label: 'Reservations', href: route('admin.reservations.index'), active: route().current('admin.reservations.*') },
 ]);
 
 const closeNavigation = () => {
