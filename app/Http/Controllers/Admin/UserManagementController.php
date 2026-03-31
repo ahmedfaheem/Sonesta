@@ -37,6 +37,8 @@ abstract class UserManagementController extends Controller
 
     public function index(Request $request): Response
     {
+        $this->authorizeIndex();
+
         $users = QueryBuilder::for($this->usersQuery())
             ->with('createdBy')
             ->allowedFilters(
@@ -61,11 +63,15 @@ abstract class UserManagementController extends Controller
 
     public function create(): Response
     {
+        $this->authorizeCreate();
+
         return Inertia::render($this->page('Create'));
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
+        $this->authorizeStore();
+
         $user = $this->saveUser(new User, $request);
         $user->assignRole($this->role);
 
@@ -89,6 +95,7 @@ abstract class UserManagementController extends Controller
     public function edit(User $user): Response
     {
         $user = $this->ensureUserMatchesRole($user);
+        $this->authorizeUpdateUser($user);
 
         return Inertia::render($this->page('Edit'), [
             $this->singularKey => $this->serializeUser($user),
@@ -98,6 +105,7 @@ abstract class UserManagementController extends Controller
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $user = $this->ensureUserMatchesRole($user);
+        $this->authorizeUpdateUser($user);
 
         $this->saveUser($user, $request);
 
@@ -108,6 +116,7 @@ abstract class UserManagementController extends Controller
     public function destroy(User $user): RedirectResponse
     {
         $user = $this->ensureUserMatchesRole($user);
+        $this->authorizeDeleteUser($user);
 
         if ($this->role === 'manager') {
             $hasFloors = $user->floors()->exists();
@@ -130,15 +139,36 @@ abstract class UserManagementController extends Controller
         return back()->with('success', 'Deleted');
     }
 
+    public function toggleBan(User $user): RedirectResponse
+    {
+        $user = $this->ensureUserMatchesRole($user);
+
+        abort_unless($this->role === 'receptionist', HttpResponse::HTTP_NOT_FOUND);
+
+        if (auth()->user()?->hasRole('manager')) {
+            $this->authorize('banReceptionist', $user);
+        }
+
+        $isCurrentlyBanned = ! (bool) $user->is_approved;
+
+        $user->forceFill([
+            'is_approved' => $isCurrentlyBanned,
+            'approved_by' => $isCurrentlyBanned ? null : auth()->id(),
+        ])->save();
+
+        return back()->with(
+            'success',
+            $isCurrentlyBanned
+                ? "{$user->name} has been unbanned."
+                : "{$user->name} has been banned."
+        );
+    }
+
     protected function usersQuery(): Builder
     {
         $query = User::query()
             ->with('createdBy')
             ->role($this->role);
-
-        if ($this->role === 'receptionist' && auth()->user()?->hasRole('manager')) {
-            $query->where('created_by', auth()->id());
-        }
 
         return $query;
     }
@@ -253,5 +283,54 @@ abstract class UserManagementController extends Controller
     protected function hasDedicatedShowPage(): bool
     {
         return false;
+    }
+
+    protected function authorizeIndex(): void
+    {
+        if ($this->role === 'receptionist' && auth()->user()?->hasRole('manager')) {
+            $this->authorize('viewAnyReceptionists', User::class);
+        }
+
+        if ($this->role === 'client' && auth()->user()?->hasRole('manager')) {
+            $this->authorize('viewAnyClients', User::class);
+        }
+    }
+
+    protected function authorizeCreate(): void
+    {
+        if ($this->role === 'receptionist' && auth()->user()?->hasRole('manager')) {
+            $this->authorize('createReceptionist', User::class);
+        }
+
+        if ($this->role === 'client' && auth()->user()?->hasRole('manager')) {
+            $this->authorize('createClient', User::class);
+        }
+    }
+
+    protected function authorizeStore(): void
+    {
+        $this->authorizeCreate();
+    }
+
+    protected function authorizeUpdateUser(User $user): void
+    {
+        if ($this->role === 'receptionist' && auth()->user()?->hasRole('manager')) {
+            $this->authorize('updateReceptionist', $user);
+        }
+
+        if ($this->role === 'client' && auth()->user()?->hasRole('manager')) {
+            $this->authorize('updateClient', $user);
+        }
+    }
+
+    protected function authorizeDeleteUser(User $user): void
+    {
+        if ($this->role === 'receptionist' && auth()->user()?->hasRole('manager')) {
+            $this->authorize('deleteReceptionist', $user);
+        }
+
+        if ($this->role === 'client' && auth()->user()?->hasRole('manager')) {
+            $this->authorize('deleteClient', $user);
+        }
     }
 }

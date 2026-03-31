@@ -27,6 +27,9 @@ const props = defineProps({
 
 const page = usePage();
 const routePrefix = computed(() => ((page.props.auth.user?.roles ?? []).includes('admin') ? 'admin' : 'manager'));
+const isAdmin = computed(() => (page.props.auth.user?.roles ?? []).includes('admin'));
+const authUserId = computed(() => page.props.auth.user?.id);
+const canManageRoom = (room) => isAdmin.value || Number(room.manager_id) === Number(authUserId.value);
 
 const form = reactive({
     search: props.filters.search ?? '',
@@ -127,7 +130,7 @@ const deleteRoom = (room) => {
                     <tr class="text-left text-sm font-semibold text-slate-600">
                         <th class="px-6 py-4">Room</th>
                         <th class="px-6 py-4">Floor</th>
-                        <th class="px-6 py-4">Manager</th>
+                        <th v-if="isAdmin" class="px-6 py-4">Manager</th>
                         <th class="px-6 py-4">Capacity</th>
                         <th class="px-6 py-4">Price</th>
                         <th class="px-6 py-4">Reservations</th>
@@ -138,16 +141,23 @@ const deleteRoom = (room) => {
                     <tr v-for="room in rooms.data" :key="room.id">
                         <td class="px-6 py-4 font-medium text-slate-900">#{{ room.number }}</td>
                         <td class="px-6 py-4">{{ room.floor_name }} (#{{ room.floor_number }})</td>
-                        <td class="px-6 py-4">{{ room.manager_name }}</td>
+                        <td v-if="isAdmin" class="px-6 py-4">{{ room.manager_name }}</td>
                         <td class="px-6 py-4">{{ room.capacity }}</td>
                         <td class="px-6 py-4">${{ room.price_dollars }}</td>
                         <td class="px-6 py-4">{{ room.reservations_count }}</td>
                         <td class="px-6 py-4">
                             <div class="flex gap-2">
-                                <Link :href="route(`${routePrefix}.rooms.edit`, room.id)">
+                                <Link v-if="canManageRoom(room)" :href="route(`${routePrefix}.rooms.edit`, room.id)">
                                     <Button variant="secondary" size="sm">Edit</Button>
                                 </Link>
-                                <Button variant="destructive" size="sm" @click="deleteRoom(room)">Delete</Button>
+                                <Button
+                                    v-if="canManageRoom(room)"
+                                    variant="destructive"
+                                    size="sm"
+                                    @click="deleteRoom(room)"
+                                >
+                                    Delete
+                                </Button>
                             </div>
                         </td>
                     </tr>

@@ -17,6 +17,7 @@ const navigation = computed(() => [
     { label: 'Managers', href: route('admin.managers.index'), active: componentMatches(['Admin/Managers/']) },
     { label: 'Receptionists', href: route('admin.receptionists.index'), active: componentMatches(['Admin/Receptionists/']) },
     { label: 'Clients', href: route('admin.clients.index'), active: componentMatches(['Admin/Clients/']) },
+    { label: 'Reservations', href: route('admin.reservations.index'), active: componentMatches(['Admin/Reservations/']) },
 ]);
 
 const closeNavigation = () => {

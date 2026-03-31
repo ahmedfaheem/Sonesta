@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\CreateAdmin;
 use App\Console\Commands\LoginReminder;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -14,6 +15,7 @@ class Kernel extends ConsoleKernel
      * @var array<int, class-string>
      */
     protected array $commands = [
+        CreateAdmin::class,
         LoginReminder::class,
     ];
 

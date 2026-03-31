@@ -21,7 +21,7 @@ class StoreFloorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'min:2', 'max:255'],
+            'name' => ['required', 'string', 'min:3', 'max:255'],
             'manager_id' => [
                 Rule::requiredIf(fn () => $this->user()?->hasRole('admin')),
                 'nullable',

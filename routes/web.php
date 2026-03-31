@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\Manager\FloorController;
+use App\Http\Controllers\Manager\ClientController as ManagerClientController;
 use App\Http\Controllers\Manager\ReceptionistController as ManagerReceptionistController;
 use App\Http\Controllers\Manager\RoomController;
 use App\Http\Controllers\Client\ReservationController as ClientReservationController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ManagerController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\ReceptionistController;
 use App\Http\Controllers\Receptionist\ClientController as ReceptionistClientController;
 use App\Http\Controllers\Receptionist\DashboardController as ReceptionistDashboardController;
@@ -89,12 +91,17 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('clients/export', [ClientController::class, 'export'])->name('clients.export');
 
+        Route::get('reservations', [AdminReservationController::class, 'index'])
+            ->name('reservations.index');
+
         Route::resource('managers', ManagerController::class)
             ->parameters(['managers' => 'user']);
         Route::patch('managers/{user}/ban', [ManagerController::class, 'toggleBan'])
             ->name('managers.ban');
         Route::resource('receptionists', ReceptionistController::class)
             ->parameters(['receptionists' => 'user']);
+        Route::patch('receptionists/{user}/ban', [ReceptionistController::class, 'toggleBan'])
+            ->name('receptionists.ban');
         Route::resource('clients', ClientController::class)
             ->parameters(['clients' => 'user']);
         Route::resource('floors', FloorController::class)->except('show');
@@ -130,6 +137,10 @@ Route::middleware(['auth', 'role:admin|manager'])->group(function () {
         Route::resource('rooms', RoomController::class)->except('show');
         Route::resource('receptionists', ManagerReceptionistController::class)
             ->parameters(['receptionists' => 'user']);
+        Route::patch('receptionists/{user}/ban', [ManagerReceptionistController::class, 'toggleBan'])
+            ->name('receptionists.ban');
+        Route::resource('clients', ManagerClientController::class)
+            ->parameters(['clients' => 'user']);
     });
 });
 

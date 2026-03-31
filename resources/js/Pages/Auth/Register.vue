@@ -24,6 +24,7 @@ const props = defineProps({
 const form = useForm({
     name: '',
     email: '',
+    phone: '',
     national_id: '',
     password: '',
     password_confirmation: '',
@@ -35,6 +36,7 @@ const form = useForm({
 const touched = reactive({
     name: false,
     email: false,
+    phone: false,
     national_id: false,
     password: false,
     password_confirmation: false,
@@ -51,6 +53,7 @@ const normalizeString = (value) => (typeof value === 'string' ? value : '');
 const validations = computed(() => ({
     name: normalizeString(form.name).trim().length >= 3,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeString(form.email)),
+    phone: form.phone.trim() === '' || form.phone.trim().length >= 6,
     national_id:
         normalizeString(form.national_id).trim() === '' ||
         normalizeString(form.national_id).trim().length >= 8,
@@ -86,6 +89,7 @@ const fieldError = (field) => {
     const messages = {
         name: 'Enter at least 3 characters for your name.',
         email: 'Enter a valid email address.',
+        phone: 'Phone number should be at least 6 characters if provided.',
         national_id: 'National ID should be at least 8 characters if provided.',
         password: 'Password must be at least 6 characters.',
         password_confirmation: 'Passwords must match.',
@@ -130,6 +134,16 @@ const fieldError = (field) => {
                 autocomplete="username"
                 :error="fieldError('email')"
                 @blur="markTouched('email')"
+            />
+
+            <InputField
+                id="phone"
+                v-model="form.phone"
+                label="Phone"
+                placeholder="Your phone number"
+                autocomplete="tel"
+                :error="fieldError('phone')"
+                @blur="markTouched('phone')"
             />
 
             <CountrySelect

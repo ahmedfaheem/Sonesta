@@ -22,6 +22,7 @@ const componentMatches = (prefixes) => {
 const navigation = computed(() => [
     { label: dashboardLabel.value, href: dashboardHref.value, active: componentMatches(['Admin/Dashboard', 'Manager/Dashboard']) },
     { label: 'Receptionists', href: route(`${resourceRoutePrefix.value}.receptionists.index`), active: componentMatches(['Manager/Receptionists/', 'Admin/Receptionists/']) },
+    { label: 'Clients', href: route(`${resourceRoutePrefix.value}.clients.index`), active: componentMatches(['Manager/Clients/', 'Admin/Clients/']) },
     { label: 'Floors', href: route(`${resourceRoutePrefix.value}.floors.index`), active: componentMatches(['Manager/Floors/', 'Admin/Floors/']) },
     { label: 'Rooms', href: route(`${resourceRoutePrefix.value}.rooms.index`), active: componentMatches(['Manager/Rooms/', 'Admin/Rooms/']) },
 ]);

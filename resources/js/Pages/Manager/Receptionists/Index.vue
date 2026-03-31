@@ -3,8 +3,8 @@ import DeleteConfirmationDialog from '@/Components/Admin/DeleteConfirmationDialo
 import UserTable from '@/Components/Admin/UserTable.vue';
 import Button from '@/Components/ui/Button.vue';
 import ManagerLayout from '@/Layouts/ManagerLayout.vue';
-import { Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 defineOptions({
     layout: ManagerLayout,
@@ -16,6 +16,12 @@ const props = defineProps({
         required: true,
     },
 });
+
+const page = usePage();
+const roles = computed(() => page.props.auth.user?.roles ?? []);
+const isAdmin = computed(() => roles.value.includes('admin'));
+const authUserId = computed(() => page.props.auth.user?.id);
+const canManageReceptionist = (row) => isAdmin.value || Number(row.created_by) === Number(authUserId.value);
 
 const selectedReceptionist = ref(null);
 const deleting = ref(false);
@@ -39,6 +45,12 @@ const deleteReceptionist = () => {
         },
     });
 };
+
+const toggleBan = (receptionist) => {
+    router.patch(route('manager.receptionists.ban', receptionist.id), {}, {
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -50,15 +62,23 @@ const deleteReceptionist = () => {
             :links="receptionists.links"
             :create-href="route('manager.receptionists.create')"
             create-label="Create receptionist"
-            show-creator-column
+            :show-creator-column="isAdmin"
             creator-column-label="Manager Name"
             @delete="confirmDelete"
         >
             <template #actions="{ row }">
-                <Link :href="route('manager.receptionists.edit', row.id)">
+                <Link v-if="canManageReceptionist(row)" :href="route('manager.receptionists.edit', row.id)">
                     <Button variant="secondary" size="sm">Edit</Button>
                 </Link>
-                <Button variant="destructive" size="sm" @click="confirmDelete(row)">Delete</Button>
+                <Button
+                    v-if="canManageReceptionist(row)"
+                    variant="secondary"
+                    size="sm"
+                    @click="toggleBan(row)"
+                >
+                    {{ row.is_approved ? 'Ban' : 'Unban' }}
+                </Button>
+                <Button v-if="canManageReceptionist(row)" variant="destructive" size="sm" @click="confirmDelete(row)">Delete</Button>
             </template>
         </UserTable>
 

@@ -3,8 +3,8 @@ import DeleteConfirmationDialog from '@/Components/Admin/DeleteConfirmationDialo
 import UserTable from '@/Components/Admin/UserTable.vue';
 import Button from '@/Components/ui/Button.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 defineOptions({
     layout: AdminLayout,
@@ -16,6 +16,10 @@ const props = defineProps({
         required: true,
     },
 });
+
+const page = usePage();
+const roles = computed(() => page.props.auth.user?.roles ?? []);
+const isAdmin = computed(() => roles.value.includes('admin'));
 
 const selectedReceptionist = ref(null);
 const deleting = ref(false);
@@ -39,6 +43,12 @@ const deleteReceptionist = () => {
         },
     });
 };
+
+const toggleBan = (receptionist) => {
+    router.patch(route('admin.receptionists.ban', receptionist.id), {}, {
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -50,7 +60,7 @@ const deleteReceptionist = () => {
             :links="receptionists.links"
             :create-href="route('admin.receptionists.create')"
             create-label="Create receptionist"
-            show-creator-column
+            :show-creator-column="isAdmin"
             creator-column-label="Manager Name"
             @delete="confirmDelete"
         >
@@ -58,6 +68,9 @@ const deleteReceptionist = () => {
                 <Link :href="route('admin.receptionists.edit', row.id)">
                     <Button variant="secondary" size="sm">Edit</Button>
                 </Link>
+                <Button variant="secondary" size="sm" @click="toggleBan(row)">
+                    {{ row.is_approved ? 'Ban' : 'Unban' }}
+                </Button>
                 <Button variant="destructive" size="sm" @click="confirmDelete(row)">Delete</Button>
             </template>
         </UserTable>
