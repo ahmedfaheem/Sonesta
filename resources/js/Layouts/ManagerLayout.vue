@@ -13,11 +13,17 @@ const resourceRoutePrefix = computed(() => (isAdmin.value ? 'admin' : 'manager')
 const dashboardHref = computed(() => (isAdmin.value ? route('admin.dashboard') : route('manager.dashboard')));
 const dashboardLabel = computed(() => (isAdmin.value ? 'Admin Dashboard' : 'Dashboard'));
 
+const componentMatches = (prefixes) => {
+    const component = page.component || '';
+
+    return prefixes.some((prefix) => component.startsWith(prefix));
+};
+
 const navigation = computed(() => [
-    { label: dashboardLabel.value, href: dashboardHref.value, active: route().current(isAdmin.value ? 'admin.dashboard' : 'manager.dashboard') },
-    { label: 'Receptionists', href: route(`${resourceRoutePrefix.value}.receptionists.index`), active: route().current('manager.receptionists.*') || route().current('admin.receptionists.*') },
-    { label: 'Floors', href: route(`${resourceRoutePrefix.value}.floors.index`), active: route().current('manager.floors.*') || route().current('admin.floors.*') },
-    { label: 'Rooms', href: route(`${resourceRoutePrefix.value}.rooms.index`), active: route().current('manager.rooms.*') || route().current('admin.rooms.*') },
+    { label: dashboardLabel.value, href: dashboardHref.value, active: componentMatches(['Admin/Dashboard', 'Manager/Dashboard']) },
+    { label: 'Receptionists', href: route(`${resourceRoutePrefix.value}.receptionists.index`), active: componentMatches(['Manager/Receptionists/', 'Admin/Receptionists/']) },
+    { label: 'Floors', href: route(`${resourceRoutePrefix.value}.floors.index`), active: componentMatches(['Manager/Floors/', 'Admin/Floors/']) },
+    { label: 'Rooms', href: route(`${resourceRoutePrefix.value}.rooms.index`), active: componentMatches(['Manager/Rooms/', 'Admin/Rooms/']) },
 ]);
 
 const closeNavigation = () => {

@@ -6,11 +6,17 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 const page = usePage();
 const navigationOpen = ref(false);
 
+const componentMatches = (prefixes) => {
+    const component = page.component || '';
+
+    return prefixes.some((prefix) => component.startsWith(prefix));
+};
+
 const navigation = computed(() => [
-    { label: 'Dashboard', href: route('admin.dashboard'), active: route().current('admin.dashboard') },
-    { label: 'Managers', href: route('admin.managers.index'), active: route().current('admin.managers.*') },
-    { label: 'Receptionists', href: route('admin.receptionists.index'), active: route().current('admin.receptionists.*') },
-    { label: 'Clients', href: route('admin.clients.index'), active: route().current('admin.clients.*') },
+    { label: 'Dashboard', href: route('admin.dashboard'), active: componentMatches(['Admin/Dashboard']) },
+    { label: 'Managers', href: route('admin.managers.index'), active: componentMatches(['Admin/Managers/']) },
+    { label: 'Receptionists', href: route('admin.receptionists.index'), active: componentMatches(['Admin/Receptionists/']) },
+    { label: 'Clients', href: route('admin.clients.index'), active: componentMatches(['Admin/Clients/']) },
 ]);
 
 const closeNavigation = () => {
