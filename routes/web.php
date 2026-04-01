@@ -123,10 +123,13 @@ Route::middleware(['auth', 'role:receptionist'])->group(function () {
 
     Route::prefix('receptionist')->name('receptionist.')->group(function () {
         Route::get('clients/pending', [ReceptionistClientController::class, 'pending'])
+            ->middleware('can:viewPendingClients,'.User::class)
             ->name('clients.pending');
         Route::patch('clients/{user}/approve', [ReceptionistClientController::class, 'approve'])
+            ->middleware('can:approveClient,user')
             ->name('clients.approve');
         Route::get('clients/my-approved', [ReceptionistClientController::class, 'approved'])
+            ->middleware('can:viewApprovedClients,'.User::class)
             ->name('clients.approved');
         Route::get('reservations', [ReceptionistReservationController::class, 'index'])
             ->name('reservations.index');
@@ -138,10 +141,12 @@ Route::middleware(['auth', 'role:admin|manager'])->group(function () {
         Route::resource('floors', FloorController::class)->except('show');
         Route::resource('rooms', RoomController::class)->except('show');
         Route::resource('receptionists', ManagerReceptionistController::class)
+            ->middleware('can:viewAnyReceptionists,'.User::class)
             ->parameters(['receptionists' => 'user']);
         Route::patch('receptionists/{user}/ban', [ManagerReceptionistController::class, 'toggleBan'])
             ->name('receptionists.ban');
         Route::resource('clients', ManagerClientController::class)
+            ->middleware('can:viewAnyClients,'.User::class)
             ->parameters(['clients' => 'user']);
     });
 });

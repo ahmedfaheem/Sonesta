@@ -360,6 +360,38 @@ Controllers using `->visibleTo(auth()->user())`:
 
 This prevents managers from viewing or assigning floors/rooms owned by other managers.
 
+## Authorization (Policies)
+
+Policy-driven access is enforced for user/client/receptionist management.
+
+- `admin`:
+  - Full access (handled by `UserPolicy::before()`).
+- `manager`:
+  - Can only view/edit/delete own receptionists and clients (`created_by = auth()->id()`).
+- `receptionist`:
+  - Limited to pending/approved client views and client approval actions.
+
+Key policy methods in `app/Policies/UserPolicy.php`:
+
+- `viewReceptionist`, `updateReceptionist`, `deleteReceptionist`, `banReceptionist`
+- `viewClient`, `updateClient`, `deleteClient`
+- `viewPendingClients`, `viewApprovedClients`, `approveClient`
+
+Enforcement points:
+
+- `app/Http/Controllers/Admin/UserManagementController.php`
+  - uses policy authorization on show/edit/update/destroy flows
+  - scopes manager queries to owned records for `client` and `receptionist`
+- `routes/web.php`
+  - receptionist routes use `can:viewPendingClients`, `can:viewApprovedClients`, `can:approveClient`
+  - manager resources use `can:viewAnyReceptionists` and `can:viewAnyClients`
+
+Result:
+
+- Managers cannot edit/delete/view other managers' users.
+- Receptionists cannot perform manager/admin user CRUD actions.
+- Admin retains full access.
+
 ## Notes
 
 - `resources/js/Pages/Admin/Dashboard.vue` and `resources/js/Pages/Manager/Dashboard.vue` exist as dashboard entry pages

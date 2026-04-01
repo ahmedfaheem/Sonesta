@@ -84,6 +84,7 @@ abstract class UserManagementController extends Controller
     public function show(User $user): Response|RedirectResponse
     {
         $user = $this->ensureUserMatchesRole($user);
+        $this->authorizeViewUser($user);
 
         if ($this->hasDedicatedShowPage()) {
             return Inertia::render($this->page('Show'), [
@@ -168,9 +169,18 @@ abstract class UserManagementController extends Controller
 
     protected function usersQuery(): Builder
     {
-        return User::query()
+        $query = User::query()
             ->with('createdBy')
             ->role($this->role);
+
+        if (
+            auth()->user()?->hasRole('manager')
+            && in_array($this->role, ['receptionist', 'client'], true)
+        ) {
+            $query->where('created_by', auth()->id());
+        }
+
+        return $query;
     }
 
     protected function saveUser(User $user, StoreUserRequest|UpdateUserRequest $request): User
@@ -260,7 +270,7 @@ abstract class UserManagementController extends Controller
         abort_unless($user->hasRole($this->role), HttpResponse::HTTP_NOT_FOUND);
 
         if (
-            $this->role === 'receptionist'
+            in_array($this->role, ['receptionist', 'client'], true)
             && auth()->user()?->hasRole('manager')
             && (int) $user->created_by !== (int) auth()->id()
         ) {
@@ -382,6 +392,17 @@ abstract class UserManagementController extends Controller
 
         if ($this->role === 'client' && auth()->user()?->hasRole('manager')) {
             $this->authorize('updateClient', $user);
+        }
+    }
+
+    protected function authorizeViewUser(User $user): void
+    {
+        if ($this->role === 'receptionist' && auth()->user()?->hasRole('manager')) {
+            $this->authorize('viewReceptionist', $user);
+        }
+
+        if ($this->role === 'client' && auth()->user()?->hasRole('manager')) {
+            $this->authorize('viewClient', $user);
         }
     }
 

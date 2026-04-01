@@ -45,6 +45,13 @@ class UserPolicy
 
     public function updateReceptionist(User $user, User $receptionist): bool
     {
+        return $this->viewReceptionist($user, $receptionist)
+            && $user->hasRole('manager')
+            && $receptionist->hasRole('receptionist');
+    }
+
+    public function viewReceptionist(User $user, User $receptionist): bool
+    {
         return $user->hasRole('manager')
             && $receptionist->hasRole('receptionist')
             && (int) $receptionist->created_by === (int) $user->id;
@@ -72,7 +79,16 @@ class UserPolicy
 
     public function updateClient(User $user, User $client): bool
     {
-        return $user->hasRole('manager') && $client->hasRole('client');
+        return $this->viewClient($user, $client)
+            && $user->hasRole('manager')
+            && $client->hasRole('client');
+    }
+
+    public function viewClient(User $user, User $client): bool
+    {
+        return $user->hasRole('manager')
+            && $client->hasRole('client')
+            && (int) $client->created_by === (int) $user->id;
     }
 
     public function deleteClient(User $user, User $client): bool
