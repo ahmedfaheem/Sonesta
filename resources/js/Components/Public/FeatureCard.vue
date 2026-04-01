@@ -18,7 +18,7 @@ defineProps({
 </script>
 
 <template>
-    <Card class="h-full transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <Card class="h-full border border-white/60 bg-white/85 transition duration-200 hover:-translate-y-1 hover:shadow-xl">
         <div class="p-6">
             <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-2xl text-white">
                 {{ icon }}

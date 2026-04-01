@@ -32,7 +32,7 @@ const links = [
                     SO
                 </div>
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Sonesta</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Sonesta Hotels</p>
                     <p class="text-lg font-semibold tracking-tight text-slate-950">Sonesta</p>
                 </div>
             </a>

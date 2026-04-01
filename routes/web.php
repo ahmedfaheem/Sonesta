@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ReceptionistController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Client\ReservationController as ClientReservationController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Manager\ClientController as ManagerClientController;
 use App\Http\Controllers\Manager\FloorController;
 use App\Http\Controllers\Manager\ReceptionistController as ManagerReceptionistController;
@@ -14,40 +15,12 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Receptionist\ClientController as ReceptionistClientController;
 use App\Http\Controllers\Receptionist\DashboardController as ReceptionistDashboardController;
 use App\Http\Controllers\Receptionist\ReservationController as ReceptionistReservationController;
-use App\Models\Room;
 use App\Models\User;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
-Route::get('/', function (Request $request) {
-    $rooms = collect();
-
-    if (Schema::hasTable('rooms')) {
-        try {
-            $rooms = Room::query()
-                ->latest()
-                ->limit(6)
-                ->get(['id', 'number', 'capacity', 'price']);
-        } catch (QueryException) {
-            $rooms = collect();
-        }
-    }
-
-    return Inertia::render('Welcome', [
-        'canLogin' => ! $request->user() && Route::has('login'),
-        'canRegister' => ! $request->user() && Route::has('register'),
-        'rooms' => $rooms
-            ->map(fn (Room $room) => [
-                'id' => $room->id,
-                'number' => $room->number,
-                'capacity' => $room->capacity,
-                'price' => number_format($room->price / 100, 2, '.', ''),
-            ]),
-    ]);
-});
+Route::get('/', [HomeController::class, 'index']);
 
 Route::get('/dashboard', function (Request $request) {
     $user = $request->user();
