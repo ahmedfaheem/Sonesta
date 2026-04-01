@@ -44,6 +44,19 @@ abstract class UserManagementController extends Controller
         $users = QueryBuilder::for($this->usersQuery())
             ->with('createdBy')
             ->allowedFilters(
+                AllowedFilter::callback('search', function (Builder $query, string $value): void {
+                    $search = trim($value);
+
+                    if ($search === '') {
+                        return;
+                    }
+
+                    $query->where(function (Builder $innerQuery) use ($search): void {
+                        $innerQuery
+                            ->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+                }),
                 AllowedFilter::partial('name'),
                 AllowedFilter::partial('email'),
                 AllowedFilter::exact('is_approved')
@@ -60,6 +73,14 @@ abstract class UserManagementController extends Controller
 
         return Inertia::render($this->page('Index'), [
             $this->collectionKey => $users,
+            'query' => [
+                'filter' => [
+                    'search' => $request->input('filter.search', ''),
+                ],
+                'sort' => $request->input('sort', '-created_at'),
+                'page' => $request->integer('page', 1),
+                'per_page' => $request->integer('per_page', 10),
+            ],
         ]);
     }
 

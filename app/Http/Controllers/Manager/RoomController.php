@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class RoomController extends Controller
 {
@@ -20,39 +22,49 @@ class RoomController extends Controller
     {
         $this->authorize('viewAny', Room::class);
 
-        $filters = [
-            'search' => trim((string) $request->query('search', '')),
-            'floor_id' => $request->filled('floor_id') ? (int) $request->query('floor_id') : null,
-            'sort' => $this->resolveSort((string) $request->query('sort', 'created_at')),
-            'direction' => $this->resolveDirection((string) $request->query('direction', 'desc')),
-        ];
-
-        $rooms = Room::query()
+        $rooms = QueryBuilder::for(
+            Room::query()
             ->with(['floor:id,name,number', 'manager:id,name'])
             ->withCount('reservations')
             ->visibleTo(auth()->user())
-            ->when($filters['search'] !== '', function (Builder $query) use ($filters): void {
-                $search = $filters['search'];
+        )
+            ->allowedFilters(
+                AllowedFilter::callback('search', function (Builder $query, string $value): void {
+                    $search = trim($value);
 
-                $query->where(function (Builder $innerQuery) use ($search): void {
-                    $innerQuery
-                        ->where('number', 'like', "%{$search}%")
-                        ->orWhereHas('floor', function (Builder $floorQuery) use ($search): void {
-                            $floorQuery
-                                ->where('name', 'like', "%{$search}%")
-                                ->orWhere('number', 'like', "%{$search}%");
-                        });
-                });
-            })
-            ->when($filters['floor_id'], fn (Builder $query, int $floorId) => $query->where('floor_id', $floorId))
-            ->orderBy($filters['sort'], $filters['direction'])
-            ->paginate(10)
+                    if ($search === '') {
+                        return;
+                    }
+
+                    $query->where(function (Builder $innerQuery) use ($search): void {
+                        $innerQuery
+                            ->where('number', 'like', "%{$search}%")
+                            ->orWhereHas('floor', function (Builder $floorQuery) use ($search): void {
+                                $floorQuery
+                                    ->where('name', 'like', "%{$search}%")
+                                    ->orWhere('number', 'like', "%{$search}%");
+                            });
+                    });
+                }),
+                AllowedFilter::exact('floor_id'),
+            )
+            ->allowedSorts('number', 'capacity', 'price', 'created_at')
+            ->defaultSort('-created_at')
+            ->paginate($request->integer('per_page', 10))
             ->withQueryString()
             ->through(fn (Room $room) => $this->serializeRoom($room));
 
         return Inertia::render('Manager/Rooms/Index', [
             'rooms' => $rooms,
-            'filters' => $filters,
+            'query' => [
+                'filter' => [
+                    'search' => $request->input('filter.search', ''),
+                    'floor_id' => $request->input('filter.floor_id'),
+                ],
+                'sort' => $request->input('sort', '-created_at'),
+                'page' => $request->integer('page', 1),
+                'per_page' => $request->integer('per_page', 10),
+            ],
             'floors' => $this->floorOptions($request),
         ]);
     }
@@ -157,16 +169,6 @@ class RoomController extends Controller
             'reservations_count' => $room->reservations_count ?? $room->reservations()->count(),
             'created_at' => $room->created_at?->toDateTimeString(),
         ];
-    }
-
-    protected function resolveSort(string $sort): string
-    {
-        return in_array($sort, ['number', 'capacity', 'price', 'created_at'], true) ? $sort : 'created_at';
-    }
-
-    protected function resolveDirection(string $direction): string
-    {
-        return $direction === 'asc' ? 'asc' : 'desc';
     }
 
     protected function floorOptions(Request $request): array

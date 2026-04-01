@@ -21,6 +21,7 @@
         "vue": "^3.4.0"
     },
     "dependencies": {
+        "@tanstack/vue-table": "^8.21.3",
         "chart.js": "^4.5.1"
     }
 }

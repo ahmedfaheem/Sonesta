@@ -1,6 +1,7 @@
 <script setup>
 import DeleteConfirmationDialog from '@/Components/Admin/DeleteConfirmationDialog.vue';
-import UserTable from '@/Components/Admin/UserTable.vue';
+import DataTable from '@/Components/DataTable.vue';
+import Badge from '@/Components/ui/Badge.vue';
 import Button from '@/Components/ui/Button.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
@@ -14,6 +15,10 @@ const props = defineProps({
     clients: {
         type: Object,
         required: true,
+    },
+    query: {
+        type: Object,
+        default: () => ({}),
     },
 });
 
@@ -39,6 +44,23 @@ const deleteClient = () => {
         },
     });
 };
+
+const columns = [
+    { id: 'name', header: 'Name', accessorKey: 'name', sortKey: 'name' },
+    { id: 'email', header: 'Email', accessorKey: 'email', sortKey: 'email' },
+    { id: 'status', header: 'Status', accessorKey: 'is_approved', sortable: false },
+    { id: 'created_at', header: 'Created', accessorKey: 'created_at', sortKey: 'created_at' },
+];
+
+const formatDate = (value) => {
+    if (!value) return '-';
+
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    }).format(new Date(value));
+};
 </script>
 
 <template>
@@ -49,16 +71,32 @@ const deleteClient = () => {
             </a>
         </div>
 
-        <UserTable
+        <DataTable
             title="Clients"
             description="Manage client accounts and their approval state."
+            :endpoint="route('admin.clients.index')"
+            :columns="columns"
             :rows="clients.data"
-            :links="clients.links"
-            :create-href="route('admin.clients.create')"
-            create-label="Create client"
-            show-approval
-            @delete="confirmDelete"
+            :pagination="clients"
+            :query="query"
+            search-placeholder="Search clients by name or email"
         >
+            <template #header-actions>
+                <Link :href="route('admin.clients.create')">
+                    <Button>Create client</Button>
+                </Link>
+            </template>
+
+            <template #cell-status="{ row }">
+                <Badge :variant="row.is_approved ? 'success' : 'warning'">
+                    {{ row.is_approved ? 'Approved' : 'Pending' }}
+                </Badge>
+            </template>
+
+            <template #cell-created_at="{ value }">
+                {{ formatDate(value) }}
+            </template>
+
             <template #actions="{ row }">
                 <Link :href="route('admin.clients.show', row.id)">
                     <Button variant="secondary" size="sm">View</Button>
@@ -68,7 +106,7 @@ const deleteClient = () => {
                 </Link>
                 <Button variant="destructive" size="sm" @click="confirmDelete(row)">Delete</Button>
             </template>
-        </UserTable>
+        </DataTable>
 
         <DeleteConfirmationDialog
             :show="!!selectedClient"

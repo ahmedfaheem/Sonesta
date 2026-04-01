@@ -1,6 +1,6 @@
 <script setup>
 import DeleteConfirmationDialog from '@/Components/Admin/DeleteConfirmationDialog.vue';
-import UserTable from '@/Components/Admin/UserTable.vue';
+import DataTable from '@/Components/DataTable.vue';
 import Badge from '@/Components/ui/Badge.vue';
 import Button from '@/Components/ui/Button.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -15,6 +15,10 @@ const props = defineProps({
     managers: {
         type: Object,
         required: true,
+    },
+    query: {
+        type: Object,
+        default: () => ({}),
     },
 });
 
@@ -46,23 +50,54 @@ const toggleBan = (manager) => {
         preserveScroll: true,
     });
 };
+
+const columns = [
+    { id: 'name', header: 'Name', accessorKey: 'name', sortKey: 'name' },
+    { id: 'email', header: 'Email', accessorKey: 'email', sortKey: 'email' },
+    { id: 'created_at', header: 'Created', accessorKey: 'created_at', sortKey: 'created_at' },
+    { id: 'status', header: 'Status', accessorKey: 'is_approved', sortable: false },
+];
+
+const formatDate = (value) => {
+    if (!value) return '-';
+
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    }).format(new Date(value));
+};
 </script>
 
 <template>
     <div>
-        <UserTable
+        <DataTable
             title="Managers"
             description="Create, update, and remove manager accounts."
+            :endpoint="route('admin.managers.index')"
+            :columns="columns"
             :rows="managers.data"
-            :links="managers.links"
-            :create-href="route('admin.managers.create')"
-            create-label="Create manager"
-            @delete="confirmDelete"
+            :pagination="managers"
+            :query="query"
+            search-placeholder="Search managers by name or email"
         >
-            <template #actions="{ row }">
+            <template #header-actions>
+                <Link :href="route('admin.managers.create')">
+                    <Button>Create manager</Button>
+                </Link>
+            </template>
+
+            <template #cell-created_at="{ value }">
+                {{ formatDate(value) }}
+            </template>
+
+            <template #cell-status="{ row }">
                 <Badge :variant="row.is_approved ? 'success' : 'warning'">
                     {{ row.is_approved ? 'Active' : 'Banned' }}
                 </Badge>
+            </template>
+
+            <template #actions="{ row }">
                 <Link :href="route('admin.managers.edit', row.id)">
                     <Button variant="secondary" size="sm">Edit</Button>
                 </Link>
@@ -71,7 +106,7 @@ const toggleBan = (manager) => {
                 </Button>
                 <Button variant="destructive" size="sm" @click="confirmDelete(row)">Delete</Button>
             </template>
-        </UserTable>
+        </DataTable>
 
         <DeleteConfirmationDialog
             :show="!!selectedManager"

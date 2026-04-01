@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class FloorController extends Controller
 {
@@ -20,33 +22,43 @@ class FloorController extends Controller
     {
         $this->authorize('viewAny', Floor::class);
 
-        $filters = [
-            'search' => trim((string) $request->query('search', '')),
-            'sort' => $this->resolveSort((string) $request->query('sort', 'created_at')),
-            'direction' => $this->resolveDirection((string) $request->query('direction', 'desc')),
-        ];
-
-        $floors = Floor::query()
+        $floors = QueryBuilder::for(
+            Floor::query()
             ->with('manager:id,name')
             ->withCount('rooms')
             ->visibleTo(auth()->user())
-            ->when($filters['search'] !== '', function (Builder $query) use ($filters): void {
-                $search = $filters['search'];
+        )
+            ->allowedFilters(
+                AllowedFilter::callback('search', function (Builder $query, string $value): void {
+                    $search = trim($value);
 
-                $query->where(function (Builder $innerQuery) use ($search): void {
-                    $innerQuery
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('number', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy($filters['sort'], $filters['direction'])
-            ->paginate(10)
+                    if ($search === '') {
+                        return;
+                    }
+
+                    $query->where(function (Builder $innerQuery) use ($search): void {
+                        $innerQuery
+                            ->where('name', 'like', "%{$search}%")
+                            ->orWhere('number', 'like', "%{$search}%");
+                    });
+                }),
+            )
+            ->allowedSorts('name', 'number', 'created_at')
+            ->defaultSort('-created_at')
+            ->paginate($request->integer('per_page', 10))
             ->withQueryString()
             ->through(fn (Floor $floor) => $this->serializeFloor($floor));
 
         return Inertia::render('Manager/Floors/Index', [
             'floors' => $floors,
-            'filters' => $filters,
+            'query' => [
+                'filter' => [
+                    'search' => $request->input('filter.search', ''),
+                ],
+                'sort' => $request->input('sort', '-created_at'),
+                'page' => $request->integer('page', 1),
+                'per_page' => $request->integer('per_page', 10),
+            ],
         ]);
     }
 
@@ -162,16 +174,6 @@ class FloorController extends Controller
             'rooms_count' => $floor->rooms_count ?? $floor->rooms()->count(),
             'created_at' => $floor->created_at?->toDateTimeString(),
         ];
-    }
-
-    protected function resolveSort(string $sort): string
-    {
-        return in_array($sort, ['name', 'number', 'created_at'], true) ? $sort : 'created_at';
-    }
-
-    protected function resolveDirection(string $direction): string
-    {
-        return $direction === 'asc' ? 'asc' : 'desc';
     }
 
     protected function indexRouteName(Request $request): string
