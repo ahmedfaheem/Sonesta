@@ -277,7 +277,23 @@ abstract class UserManagementController extends Controller
             'created_by' => $user->created_by,
             'created_by_name' => $user->createdBy?->name,
             'is_approved' => $this->isApproved($user),
+            'can_manage' => $this->canManageUser($user),
         ];
+    }
+
+    protected function canManageUser(User $user): bool
+    {
+        $authUser = auth()->user();
+
+        if ($authUser?->hasRole('admin')) {
+            return true;
+        }
+
+        if ($authUser?->hasRole('manager') && $this->role === 'receptionist') {
+            return (int) $user->created_by === (int) $authUser->id;
+        }
+
+        return false;
     }
 
     protected function isApproved(User $user): bool

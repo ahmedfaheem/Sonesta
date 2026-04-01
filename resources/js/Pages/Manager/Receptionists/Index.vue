@@ -20,8 +20,6 @@ const props = defineProps({
 const page = usePage();
 const roles = computed(() => page.props.auth.user?.roles ?? []);
 const isAdmin = computed(() => roles.value.includes('admin'));
-const authUserId = computed(() => page.props.auth.user?.id);
-const canManageReceptionist = (row) => isAdmin.value || Number(row.created_by) === Number(authUserId.value);
 
 const selectedReceptionist = ref(null);
 const deleting = ref(false);
@@ -67,18 +65,18 @@ const toggleBan = (receptionist) => {
             @delete="confirmDelete"
         >
             <template #actions="{ row }">
-                <Link v-if="canManageReceptionist(row)" :href="route('manager.receptionists.edit', row.id)">
+                <Link v-if="row.can_manage" :href="route('manager.receptionists.edit', row.id)">
                     <Button variant="secondary" size="sm">Edit</Button>
                 </Link>
                 <Button
-                    v-if="canManageReceptionist(row)"
+                    v-if="row.can_manage"
                     variant="secondary"
                     size="sm"
                     @click="toggleBan(row)"
                 >
                     {{ row.is_approved ? 'Ban' : 'Unban' }}
                 </Button>
-                <Button v-if="canManageReceptionist(row)" variant="destructive" size="sm" @click="confirmDelete(row)">Delete</Button>
+                <Button v-if="row.can_manage" variant="destructive" size="sm" @click="confirmDelete(row)">Delete</Button>
             </template>
         </UserTable>
 

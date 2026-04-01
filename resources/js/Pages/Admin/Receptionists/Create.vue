@@ -7,11 +7,20 @@ defineOptions({
     layout: AdminLayout,
 });
 
+const props = defineProps({
+    countries: {
+        type: Array,
+        default: () => [],
+    },
+});
+
 const form = useForm({
     name: '',
     email: '',
     password: '',
     national_id: '',
+    country: '',
+    gender: '',
     avatar: null,
 });
 
@@ -28,6 +37,7 @@ const submit = () => {
         back-label="Back to receptionists"
         submit-label="Create receptionist"
         :form="form"
+        :countries="countries"
         @submit="submit"
     />
 </template>
