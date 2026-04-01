@@ -7,21 +7,30 @@ import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const guestPathPatterns = [
+    /^\/$/,
+    /^\/login$/,
+    /^\/register$/,
+    /^\/forgot-password$/,
+    /^\/reset-password\/[^/]+$/,
+];
 
-const isBackForwardNavigation = () => {
-    const navigationEntries = performance.getEntriesByType('navigation');
-    return navigationEntries.length > 0 && navigationEntries[0].type === 'back_forward';
+const isGuestPath = (pathname) => guestPathPatterns.some((pattern) => pattern.test(pathname));
+const isBackForwardNavigation = () => performance.getEntriesByType('navigation')[0]?.type === 'back_forward';
+
+const reloadGuestPagesOnHistoryNavigation = () => {
+    if (isGuestPath(window.location.pathname)) {
+        window.location.reload();
+    }
 };
 
 window.addEventListener('pageshow', (event) => {
     if (event.persisted || isBackForwardNavigation()) {
-        window.location.reload();
+        reloadGuestPagesOnHistoryNavigation();
     }
 });
 
-window.addEventListener('popstate', () => {
-    window.location.reload();
-});
+window.addEventListener('popstate', reloadGuestPagesOnHistoryNavigation);
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
