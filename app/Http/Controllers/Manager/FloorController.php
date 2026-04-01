@@ -29,7 +29,7 @@ class FloorController extends Controller
         $floors = Floor::query()
             ->with('manager:id,name')
             ->withCount('rooms')
-            ->visibleTo($request->user())
+            ->visibleTo(auth()->user())
             ->when($filters['search'] !== '', function (Builder $query) use ($filters): void {
                 $search = $filters['search'];
 

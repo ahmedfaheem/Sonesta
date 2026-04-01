@@ -162,6 +162,14 @@ This runs:
 - Laravel Pail
 - Vite dev server
 
+Alternative (separate terminals):
+
+```bash
+php artisan serve
+php artisan queue:listen --tries=1
+npm run dev
+```
+
 ---
 
 ### Option 2: Docker Setup
@@ -241,6 +249,116 @@ Run tests with:
 ```bash
 composer test
 ```
+
+## API Auth (Sanctum) - Run & Use
+
+### 1. Ensure Sanctum prerequisites
+
+```bash
+php artisan migrate
+php artisan optimize:clear
+```
+
+Make sure `.env` has:
+
+```env
+SANCTUM_STATEFUL_DOMAINS=localhost,localhost:*,127.0.0.1,127.0.0.1:*,your-domain.com,app.your-domain.com
+SESSION_DOMAIN=null
+```
+
+### 2. Start the app
+
+```bash
+composer run dev
+```
+
+### 3. Create a token (authenticated user)
+
+Endpoint:
+
+- `POST /api/tokens`
+
+Payload:
+
+```json
+{
+  "name": "dashboard-client",
+  "abilities": ["*"]
+}
+```
+
+Example:
+
+```bash
+curl -X POST http://127.0.0.1:8001/api/tokens \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_EXISTING_TOKEN_OR_USE_SESSION_COOKIE" \
+  -d '{"name":"dashboard-client","abilities":["*"]}'
+```
+
+### 4. Use token on protected API routes
+
+Example:
+
+```bash
+curl http://127.0.0.1:8001/api/rooms \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_PLAIN_TEXT_TOKEN"
+```
+
+Protected routes:
+
+- `GET /api/rooms`
+- `GET /api/analytics/revenue`
+- `GET /api/analytics/top-clients`
+- `GET /api/analytics/reservations-by-country`
+- `GET /api/analytics/gender-ratio`
+
+Notes:
+
+- All API routes use `auth:sanctum`.
+- Analytics routes also require role: `admin|manager|receptionist`.
+- Banned users are blocked by `check.banned` middleware.
+
+### 5. Who can create and use tokens
+
+- Any authenticated user can create tokens from:
+  - `POST /api/tokens`
+  - Profile page (`/profile`) via the **API Tokens** card
+- Token creation is throttled (`10` requests per minute).
+- Token authentication does not bypass role checks.
+
+### 6. API visibility by role
+
+- `admin`:
+  - Can access `/api/rooms`
+  - Can access all `/api/analytics/*`
+- `manager`:
+  - Can access `/api/rooms`
+  - Can access all `/api/analytics/*`
+- `receptionist`:
+  - Can access `/api/rooms`
+  - Can access all `/api/analytics/*`
+- `client`:
+  - Can access `/api/rooms`
+  - Cannot access `/api/analytics/*` (403)
+
+## Ownership & Data Access Rules
+
+- `Floor::scopeVisibleTo($user)`:
+  - `admin` sees all floors
+  - `manager` sees only floors where `manager_id = auth()->id()`
+- `Room::scopeVisibleTo($user)`:
+  - `admin` sees all rooms
+  - `manager` sees only rooms where `manager_id = auth()->id()`
+
+Controllers using `->visibleTo(auth()->user())`:
+
+- `app/Http/Controllers/Manager/FloorController.php` (index)
+- `app/Http/Controllers/Manager/RoomController.php` (index, floor options, floor lookup in store/update)
+
+This prevents managers from viewing or assigning floors/rooms owned by other managers.
 
 ## Notes
 

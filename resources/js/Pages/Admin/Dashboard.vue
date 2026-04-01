@@ -87,8 +87,8 @@ const buildTopClientsChart = (labels, values) => {
 onMounted(async () => {
     try {
         const [revenueResponse, topClientsResponse] = await Promise.all([
-            axios.get(route('api.analytics.revenue')),
-            axios.get(route('api.analytics.top_clients')),
+            axios.get('/api/analytics/revenue'),
+            axios.get('/api/analytics/top-clients'),
         ]);
 
         buildRevenueChart(
@@ -100,7 +100,7 @@ onMounted(async () => {
             topClientsResponse.data.data.map((item) => item.reservations_count),
         );
     } catch (error) {
-        // silently fail, leave dashboard usable
+        console.error('Failed to load admin charts', error);
     }
 });
 </script>

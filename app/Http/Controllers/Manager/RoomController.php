@@ -30,7 +30,7 @@ class RoomController extends Controller
         $rooms = Room::query()
             ->with(['floor:id,name,number', 'manager:id,name'])
             ->withCount('reservations')
-            ->visibleTo($request->user())
+            ->visibleTo(auth()->user())
             ->when($filters['search'] !== '', function (Builder $query) use ($filters): void {
                 $search = $filters['search'];
 
@@ -70,7 +70,9 @@ class RoomController extends Controller
     {
         $this->authorize('create', Room::class);
 
-        $floor = Floor::query()->findOrFail($request->integer('floor_id'));
+        $floor = Floor::query()
+            ->visibleTo(auth()->user())
+            ->findOrFail($request->integer('floor_id'));
 
         Room::query()->create([
             'number' => $request->string('number')->toString(),
@@ -99,7 +101,9 @@ class RoomController extends Controller
     {
         $this->authorize('update', $room);
 
-        $floor = Floor::query()->findOrFail($request->integer('floor_id'));
+        $floor = Floor::query()
+            ->visibleTo(auth()->user())
+            ->findOrFail($request->integer('floor_id'));
 
         $room->update([
             'number' => $request->string('number')->toString(),
@@ -168,7 +172,7 @@ class RoomController extends Controller
     protected function floorOptions(Request $request): array
     {
         return Floor::query()
-            ->visibleTo($request->user())
+            ->visibleTo(auth()->user())
             ->orderBy('name')
             ->get(['id', 'name', 'number', 'manager_id'])
             ->map(fn (Floor $floor) => [

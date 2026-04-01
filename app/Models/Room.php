@@ -30,7 +30,7 @@ class Room extends Model
 
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
-        if ($user->hasAnyRole(['admin', 'manager'])) {
+        if ($user->hasRole('admin')) {
             return $query;
         }
 

@@ -49,14 +49,14 @@ const buildTopClientsChart = (labels, values) => {
 
 onMounted(async () => {
     try {
-        const response = await axios.get(route('api.analytics.top_clients'));
+        const response = await axios.get('/api/analytics/top-clients');
 
         buildTopClientsChart(
             response.data.data.map((item) => item.name),
             response.data.data.map((item) => item.reservations_count),
         );
     } catch (error) {
-        // ignore chart errors for now
+        console.error('Failed to load manager top clients chart', error);
     }
 });
 
