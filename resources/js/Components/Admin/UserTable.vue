@@ -77,9 +77,12 @@ const formatDate = (value) => {
                 <p class="mt-1 text-sm text-slate-600">{{ description }}</p>
             </div>
 
-            <Link v-if="createHref" :href="createHref">
-                <Button>{{ createLabel }}</Button>
-            </Link>
+            <div class="flex items-center gap-2">
+                <slot name="headerActions" />
+                <Link v-if="createHref" :href="createHref">
+                    <Button>{{ createLabel }}</Button>
+                </Link>
+            </div>
         </div>
 
         <Card>

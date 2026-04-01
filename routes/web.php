@@ -167,6 +167,9 @@ Route::middleware(['auth', 'role:admin|manager'])->group(function () {
             ->parameters(['receptionists' => 'user']);
         Route::patch('receptionists/{user}/ban', [ManagerReceptionistController::class, 'toggleBan'])
             ->name('receptionists.ban');
+        Route::get('clients/export', [ManagerClientController::class, 'export'])
+            ->middleware('can:viewAnyClients,'.User::class)
+            ->name('clients.export');
         Route::resource('clients', ManagerClientController::class)
             ->middleware('can:viewAnyClients,'.User::class)
             ->parameters(['clients' => 'user']);

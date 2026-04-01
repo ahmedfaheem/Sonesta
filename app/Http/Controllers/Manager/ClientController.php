@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Manager;
 
+use App\Exports\ManagerClientsExport;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -66,5 +67,13 @@ class ClientController extends UserManagementController
                     ->all();
             }),
         ]);
+    }
+
+    public function export()
+    {
+        $this->authorizeIndex();
+
+        return (new ManagerClientsExport(auth()->id()))
+            ->download('manager-clients-'.now()->format('YmdHis').'.xlsx');
     }
 }

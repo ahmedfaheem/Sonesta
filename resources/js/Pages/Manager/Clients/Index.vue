@@ -39,6 +39,10 @@ const deleteClient = () => {
         },
     });
 };
+
+const exportClients = () => {
+    window.location = route('manager.clients.export');
+};
 </script>
 
 <template>
@@ -54,6 +58,9 @@ const deleteClient = () => {
             show-view
             @delete="confirmDelete"
         >
+            <template #headerActions>
+                <Button variant="secondary" @click="exportClients">Export Excel</Button>
+            </template>
             <template #actions="{ row }">
                 <Link :href="route('manager.clients.show', row.id)">
                     <Button variant="secondary" size="sm">View</Button>
