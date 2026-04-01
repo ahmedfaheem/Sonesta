@@ -1,7 +1,9 @@
 <script setup>
+import DeleteConfirmationDialog from '@/Components/Admin/DeleteConfirmationDialog.vue';
 import Card from '@/Components/ui/Card.vue';
 import ClientLayout from '@/Layouts/ClientLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 defineOptions({
     layout: ClientLayout,
@@ -28,13 +30,26 @@ const formatDate = (value) => {
     }).format(new Date(value));
 };
 
-const removeReservation = (reservationId) => {
-    if (!window.confirm('Remove this reservation?')) {
+const selectedReservation = ref(null);
+const removing = ref(false);
+
+const confirmRemove = (reservation) => {
+    selectedReservation.value = reservation;
+};
+
+const removeReservation = () => {
+    if (!selectedReservation.value) {
         return;
     }
 
-    router.delete(route('client.reservations.destroy', reservationId), {
+    removing.value = true;
+
+    router.delete(route('client.reservations.destroy', selectedReservation.value.id), {
         preserveScroll: true,
+        onFinish: () => {
+            removing.value = false;
+            selectedReservation.value = null;
+        },
     });
 };
 </script>
@@ -68,7 +83,7 @@ const removeReservation = (reservationId) => {
                                 <button
                                     type="button"
                                     class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50"
-                                    @click="removeReservation(reservation.id)"
+                                    @click="confirmRemove(reservation)"
                                 >
                                     Remove
                                 </button>
@@ -97,5 +112,15 @@ const removeReservation = (reservationId) => {
                 />
             </div>
         </Card>
+
+        <DeleteConfirmationDialog
+            :show="!!selectedReservation"
+            title="Remove reservation"
+            :description="selectedReservation ? `Remove reservation for room ${selectedReservation.room_number ?? '-' }?` : ''"
+            confirm-label="Remove"
+            :processing="removing"
+            @close="selectedReservation = null"
+            @confirm="removeReservation"
+        />
     </div>
 </template>
