@@ -152,11 +152,10 @@ abstract class UserManagementController extends Controller
             $this->authorize('banReceptionist', $user);
         }
 
-        $isCurrentlyBanned = ! (bool) $user->is_approved;
+        $isCurrentlyBanned = (bool) $user->is_banned;
 
         $user->forceFill([
-            'is_approved' => $isCurrentlyBanned,
-            'approved_by' => $isCurrentlyBanned ? null : auth()->id(),
+            'is_banned' => ! $isCurrentlyBanned,
         ])->save();
 
         return back()->with(
@@ -317,18 +316,11 @@ abstract class UserManagementController extends Controller
 
     protected function isApproved(User $user): bool
     {
-        if ($this->role === 'manager') {
-            return ! $this->isManagerBanned($user);
+        if (in_array($this->role, ['manager', 'receptionist'], true)) {
+            return ! (bool) $user->is_banned;
         }
 
         return (bool) $user->is_approved;
-    }
-
-    protected function isManagerBanned(User $user): bool
-    {
-        $rawApproval = $user->getRawOriginal('is_approved');
-
-        return (int) $rawApproval === 0 && ! is_null($user->approved_by);
     }
 
     protected function avatarUrl(?string $path): ?string

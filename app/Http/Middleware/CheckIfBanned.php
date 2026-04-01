@@ -13,7 +13,11 @@ class CheckIfBanned
     {
         $user = $request->user();
 
-        if ($user && $user->is_approved === false) {
+        if (
+            $user
+            && $user->hasAnyRole(['admin', 'manager', 'receptionist'])
+            && (bool) $user->is_banned
+        ) {
             Auth::logout();
 
             return redirect()->route('login')->withErrors([

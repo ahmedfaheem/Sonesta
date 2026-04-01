@@ -23,7 +23,7 @@ class ManagerController extends UserManagementController
 
     protected string $resourceLabel = 'Manager';
 
-    protected bool $supportsApproval = true;
+    protected bool $supportsApproval = false;
 
     public function create(): Response
     {
@@ -49,11 +49,10 @@ class ManagerController extends UserManagementController
     {
         $user = $this->ensureUserMatchesRole($user);
 
-        $isCurrentlyBanned = $this->isManagerBanned($user);
+        $isCurrentlyBanned = (bool) $user->is_banned;
 
         $user->forceFill([
-            'is_approved' => $isCurrentlyBanned,
-            'approved_by' => $isCurrentlyBanned ? null : auth()->id(),
+            'is_banned' => ! $isCurrentlyBanned,
         ])->save();
 
         return back()->with(

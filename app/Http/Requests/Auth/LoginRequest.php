@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -48,41 +47,6 @@ class LoginRequest extends FormRequest
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
-            ]);
-        }
-
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        if ($user?->hasRole('client') && ! $user->clientProfile?->is_approved) {
-            Auth::logout();
-
-            throw ValidationException::withMessages([
-                'email' => 'Your account is pending approval.',
-            ]);
-        }
-
-        $isManagerBanned = $user?->hasRole('manager')
-            && (int) $user->getRawOriginal('is_approved') === 0
-            && ! is_null($user->approved_by);
-
-        if ($isManagerBanned) {
-            Auth::logout();
-
-            throw ValidationException::withMessages([
-                'email' => 'Your manager account is banned. Please contact an administrator.',
-            ]);
-        }
-
-        $isReceptionistBanned = $user?->hasRole('receptionist')
-            && (int) $user->getRawOriginal('is_approved') === 0
-            && ! is_null($user->approved_by);
-
-        if ($isReceptionistBanned) {
-            Auth::logout();
-
-            throw ValidationException::withMessages([
-                'email' => 'Your receptionist account is banned. Please contact a manager.',
             ]);
         }
 

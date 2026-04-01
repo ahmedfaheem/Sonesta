@@ -392,6 +392,32 @@ Result:
 - Receptionists cannot perform manager/admin user CRUD actions.
 - Admin retains full access.
 
+## Approval vs Ban Logic
+
+The system now separates client approval from staff ban state:
+
+- `is_approved`:
+  - Used for **clients only** (approval workflow).
+  - Unapproved clients can login but are redirected to `/pending-approval`.
+- `is_banned`:
+  - Used for **staff accounts** (`admin`, `manager`, `receptionist`).
+  - Banned staff are blocked by `check.banned` middleware.
+
+Login flow:
+
+- Authentication is allowed for valid credentials.
+- Redirect logic sends unapproved clients to `/pending-approval`.
+- Staff ban checks are enforced in middleware, not in login request validation.
+
+Implementation references:
+
+- `app/Http/Requests/Auth/LoginRequest.php`
+- `app/Http/Controllers/Auth/AuthenticatedSessionController.php`
+- `app/Http/Middleware/CheckIfBanned.php`
+- `app/Http/Controllers/Admin/UserManagementController.php`
+- `app/Http/Controllers/Admin/ManagerController.php`
+- `database/migrations/2026_04_01_220000_add_is_banned_to_users_table.php`
+
 ## Notes
 
 - `resources/js/Pages/Admin/Dashboard.vue` and `resources/js/Pages/Manager/Dashboard.vue` exist as dashboard entry pages
