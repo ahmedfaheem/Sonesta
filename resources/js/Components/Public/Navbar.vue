@@ -1,6 +1,7 @@
 <script setup>
 import Button from '@/Components/ui/Button.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 defineProps({
     canLogin: {
@@ -12,6 +13,9 @@ defineProps({
         default: false,
     },
 });
+
+const page = usePage();
+const isAuthenticated = computed(() => !!page.props.auth?.user);
 
 const links = [
     { label: 'Home', href: '#home' },
@@ -34,21 +38,24 @@ const links = [
             </a>
 
             <nav class="hidden items-center gap-8 md:flex">
-                <a
+                <Link
                     v-for="link in links"
                     :key="link.label"
                     :href="link.href"
                     class="text-sm font-medium text-slate-600 transition hover:text-slate-950"
                 >
                     {{ link.label }}
-                </a>
+                </Link>
             </nav>
 
             <div class="flex items-center gap-3">
-                <Link v-if="canLogin" :href="route('login')">
+                <Link v-if="isAuthenticated" :href="route('dashboard')">
+                    <Button variant="secondary">Dashboard</Button>
+                </Link>
+                <Link v-else-if="canLogin" :href="route('login')">
                     <Button variant="secondary">Login</Button>
                 </Link>
-                <Link v-if="canRegister" :href="route('register')">
+                <Link v-if="!isAuthenticated && canRegister" :href="route('register')">
                     <Button>Register</Button>
                 </Link>
             </div>

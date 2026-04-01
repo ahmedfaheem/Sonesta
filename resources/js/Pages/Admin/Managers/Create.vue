@@ -7,11 +7,21 @@ defineOptions({
     layout: AdminLayout,
 });
 
+const props = defineProps({
+    countries: {
+        type: Array,
+        default: () => [],
+    },
+});
+
 const form = useForm({
     name: '',
     email: '',
     password: '',
     national_id: '',
+    phone: '',
+    country: '',
+    gender: '',
     avatar: null,
 });
 
@@ -28,6 +38,7 @@ const submit = () => {
         back-label="Back to managers"
         submit-label="Create manager"
         :form="form"
+        :countries="props.countries"
         @submit="submit"
     />
 </template>

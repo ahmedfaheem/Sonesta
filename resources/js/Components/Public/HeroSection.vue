@@ -2,7 +2,8 @@
 import Badge from '@/Components/ui/Badge.vue';
 import Button from '@/Components/ui/Button.vue';
 import Card from '@/Components/ui/Card.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 defineProps({
     canLogin: {
@@ -14,6 +15,9 @@ defineProps({
         default: false,
     },
 });
+
+const page = usePage();
+const isAuthenticated = computed(() => !!page.props.auth?.user);
 
 const metrics = [
     { label: 'Role-aware workflows', value: '4' },
@@ -39,10 +43,13 @@ const metrics = [
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row">
-                    <Link v-if="canRegister" :href="route('register')">
+                    <Link v-if="isAuthenticated" :href="route('dashboard')">
+                        <Button size="lg">Go to Dashboard</Button>
+                    </Link>
+                    <Link v-else-if="canRegister" :href="route('register')">
                         <Button size="lg">Get Started</Button>
                     </Link>
-                    <Link v-if="canLogin" :href="route('login')">
+                    <Link v-if="!isAuthenticated && canLogin" :href="route('login')">
                         <Button variant="secondary" size="lg">Login</Button>
                     </Link>
                 </div>

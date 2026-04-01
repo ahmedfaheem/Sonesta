@@ -35,6 +35,7 @@ const submit = () => {
     if (!isValid.value) return;
 
     form.post(route('login'), {
+        replace: true,
         onFinish: () => form.reset('password'),
     });
 };

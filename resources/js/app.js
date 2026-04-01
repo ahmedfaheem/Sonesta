@@ -8,6 +8,21 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+const isBackForwardNavigation = () => {
+    const navigationEntries = performance.getEntriesByType('navigation');
+    return navigationEntries.length > 0 && navigationEntries[0].type === 'back_forward';
+};
+
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted || isBackForwardNavigation()) {
+        window.location.reload();
+    }
+});
+
+window.addEventListener('popstate', () => {
+    window.location.reload();
+});
+
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) =>

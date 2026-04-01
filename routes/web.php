@@ -19,10 +19,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
+Route::get('/', function (Request $request) {
     return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
+        'canLogin' => ! $request->user() && Route::has('login'),
+        'canRegister' => ! $request->user() && Route::has('register'),
         'rooms' => Room::query()
             ->latest()
             ->limit(6)
