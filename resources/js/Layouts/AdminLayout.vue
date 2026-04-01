@@ -1,4 +1,5 @@
 <script setup>
+import SidebarUserCard from '@/Components/Layout/SidebarUserCard.vue';
 import Button from '@/Components/ui/Button.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
@@ -62,7 +63,11 @@ onBeforeUnmount(() => {
                     <button class="lg:hidden" @click="closeNavigation">Close</button>
                 </div>
 
-                <nav class="mt-10 space-y-2">
+                <div class="mt-8">
+                    <SidebarUserCard />
+                </div>
+
+                <nav class="mt-8 space-y-2">
                     <Link
                         v-for="item in navigation"
                         :key="item.label"
@@ -74,13 +79,6 @@ onBeforeUnmount(() => {
                     </Link>
                 </nav>
 
-                <div class="mt-10 rounded-2xl bg-slate-950 p-5 text-white">
-                    <p class="text-sm font-medium">{{ page.props.auth.user?.name }}</p>
-                    <p class="mt-1 text-xs text-slate-300">{{ page.props.auth.user?.email }}</p>
-                    <Link :href="route('logout')" method="post" as="button" class="mt-4 text-sm font-medium text-white/90">
-                        Sign out
-                    </Link>
-                </div>
             </aside>
 
             <div class="flex-1">

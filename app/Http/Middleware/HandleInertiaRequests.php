@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -37,6 +38,11 @@ class HandleInertiaRequests extends Middleware
                         'id' => $request->user()->id,
                         'name' => $request->user()->name,
                         'email' => $request->user()->email,
+                        'avatar_url' => $request->user()->avatar
+                            ? (Str::startsWith($request->user()->avatar, ['http://', 'https://'])
+                                ? $request->user()->avatar
+                                : asset('storage/'.ltrim($request->user()->avatar, '/')))
+                            : null,
                         'roles' => $request->user()->getRoleNames(),
                     ]
                     : null,
