@@ -19,6 +19,7 @@ const form = useForm({
     email: '',
     password: '',
     national_id: '',
+    phone: '',
     country: '',
     gender: '',
     avatar: null,

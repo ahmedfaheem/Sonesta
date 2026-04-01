@@ -12,6 +12,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    countries: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const form = useForm({
@@ -19,6 +23,9 @@ const form = useForm({
     email: props.receptionist.email ?? '',
     password: '',
     national_id: props.receptionist.national_id ?? '',
+    phone: props.receptionist.phone ?? '',
+    country: props.receptionist.country ?? '',
+    gender: props.receptionist.gender ?? '',
     avatar: null,
 });
 
@@ -35,6 +42,7 @@ const submit = () => {
         back-label="Back to receptionists"
         submit-label="Save changes"
         :form="form"
+        :countries="countries"
         :current-avatar="receptionist.avatar_url"
         @submit="submit"
     />

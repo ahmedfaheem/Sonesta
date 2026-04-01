@@ -118,15 +118,27 @@ const preview = computed(() => {
 
                 <div class="space-y-2">
                     <Label for="gender">Gender</Label>
-                    <select
-                        id="gender"
-                        v-model="form.gender"
-                        class="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm transition focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-                    >
-                        <option value="">Select gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                    </select>
+                    <div class="grid gap-2 sm:grid-cols-2">
+                        <label
+                            class="flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-sm transition"
+                            :class="form.gender === 'male' ? 'border-slate-900 bg-slate-50 text-slate-900' : 'border-slate-300 bg-white text-slate-600'"
+                        >
+                            <input v-model="form.gender" type="radio" value="male" class="h-4 w-4 border-slate-300 text-slate-900 focus:ring-slate-500" />
+                            Male
+                        </label>
+                        <label
+                            class="flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-sm transition"
+                            :class="form.gender === 'female' ? 'border-slate-900 bg-slate-50 text-slate-900' : 'border-slate-300 bg-white text-slate-600'"
+                        >
+                            <input
+                                v-model="form.gender"
+                                type="radio"
+                                value="female"
+                                class="h-4 w-4 border-slate-300 text-slate-900 focus:ring-slate-500"
+                            />
+                            Female
+                        </label>
+                    </div>
                     <InputError :message="form.errors.gender" />
                 </div>
 

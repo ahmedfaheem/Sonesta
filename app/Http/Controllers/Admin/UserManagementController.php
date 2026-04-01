@@ -180,6 +180,15 @@ abstract class UserManagementController extends Controller
         $user->name = $validated['name'] ?? $user->name;
         $user->email = $validated['email'] ?? $user->email;
         $user->national_id = $validated['national_id'] ?? null;
+        $user->phone = $this->role === 'client'
+            ? $user->phone
+            : ($validated['phone'] ?? $user->phone);
+        $user->country = $this->role === 'client'
+            ? $user->country
+            : ($validated['country'] ?? $user->country);
+        $user->gender = $this->role === 'client'
+            ? $user->gender
+            : ($validated['gender'] ?? $user->gender);
         $user->created_by = $user->exists ? $user->created_by : $request->user()->id;
 
         $wasPreviouslyApproved = $user->exists ? (bool) $user->is_approved : true;
@@ -268,9 +277,9 @@ abstract class UserManagementController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'national_id' => $user->national_id,
-            'phone' => $this->role === 'client' ? $user->clientProfile?->phone : null,
-            'country' => $this->role === 'client' ? $user->clientProfile?->country : null,
-            'gender' => $this->role === 'client' ? $user->clientProfile?->gender : null,
+            'phone' => $this->role === 'client' ? $user->clientProfile?->phone : $user->phone,
+            'country' => $this->role === 'client' ? $user->clientProfile?->country : $user->country,
+            'gender' => $this->role === 'client' ? $user->clientProfile?->gender : $user->gender,
             'avatar' => $user->avatar,
             'avatar_url' => $this->avatarUrl($user->avatar),
             'created_at' => $user->created_at?->toISOString(),

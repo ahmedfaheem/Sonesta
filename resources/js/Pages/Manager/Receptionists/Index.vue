@@ -65,18 +65,31 @@ const toggleBan = (receptionist) => {
             @delete="confirmDelete"
         >
             <template #actions="{ row }">
-                <Link v-if="row.can_manage" :href="route('manager.receptionists.edit', row.id)">
-                    <Button variant="secondary" size="sm">Edit</Button>
-                </Link>
-                <Button
-                    v-if="row.can_manage"
-                    variant="secondary"
-                    size="sm"
-                    @click="toggleBan(row)"
-                >
-                    {{ row.is_approved ? 'Ban' : 'Unban' }}
-                </Button>
-                <Button v-if="row.can_manage" variant="destructive" size="sm" @click="confirmDelete(row)">Delete</Button>
+                <div :key="row.id + '-' + row.can_manage">
+                    <template v-if="row.can_manage === true">
+                        <Link :href="route('manager.receptionists.edit', row.id)" class="mr-2">
+                            <Button variant="secondary" size="sm">Edit</Button>
+                        </Link>
+
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            @click="toggleBan(row)"
+                            class="mr-2"
+                        >
+                            {{ row.is_approved ? 'Ban' : 'Unban' }}
+                        </Button>
+
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            @click="confirmDelete(row)"
+                            class="mr-2"
+                        >
+                            Delete
+                        </Button>
+                    </template>
+                </div>
             </template>
         </UserTable>
 
