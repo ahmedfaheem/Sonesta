@@ -11,10 +11,8 @@ class RoomsController extends Controller
     public function index(): JsonResponse
     {
         $availableRooms = Room::query()
+            ->available()
             ->with('floor:id,name,number')
-            ->whereDoesntHave('reservations', function ($query) {
-                $query->where('reservation_date', '>=', now()->startOfDay());
-            })
             ->get()
             ->map(function (Room $room) {
                 return [

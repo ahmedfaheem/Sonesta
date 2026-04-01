@@ -23,7 +23,7 @@ class ReservationController extends Controller
         $client = $this->approvedClientOrFail($request);
 
         $rooms = Room::query()
-            ->doesntHave('reservations')
+            ->available()
             ->with(['floor:id,name,number'])
             ->orderBy('number')
             ->paginate(10)
@@ -51,7 +51,12 @@ class ReservationController extends Controller
     {
         $this->approvedClientOrFail($request);
 
-        if ($room->reservations()->exists()) {
+        $roomIsAvailable = Room::query()
+            ->available()
+            ->whereKey($room->id)
+            ->exists();
+
+        if (! $roomIsAvailable) {
             return redirect()
                 ->route('client.rooms.index')
                 ->with('error', 'This room is no longer available.');
@@ -73,7 +78,12 @@ class ReservationController extends Controller
         $client = $this->approvedClientOrFail($request);
         $accompanyNumber = $request->integer('accompany_number');
 
-        if ($room->reservations()->exists()) {
+        $roomIsAvailable = Room::query()
+            ->available()
+            ->whereKey($room->id)
+            ->exists();
+
+        if (! $roomIsAvailable) {
             return back()->withErrors([
                 'room' => 'This room has already been reserved.',
             ]);
@@ -173,6 +183,7 @@ class ReservationController extends Controller
 
         $alreadyReserved = Reservation::query()
             ->where('room_id', $room->id)
+            ->where('reservation_date', '>=', now()->startOfDay())
             ->where(function ($query) use ($checkoutSession): void {
                 $query
                     ->whereNull('checkout_session_id')

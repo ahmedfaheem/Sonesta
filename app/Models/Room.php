@@ -37,6 +37,13 @@ class Room extends Model
         return $query->where('manager_id', $user->id);
     }
 
+    public function scopeAvailable(Builder $query): Builder
+    {
+        return $query->whereDoesntHave('reservations', function (Builder $reservationQuery): void {
+            $reservationQuery->where('reservation_date', '>=', now()->startOfDay());
+        });
+    }
+
     public function floor(): BelongsTo
     {
         return $this->belongsTo(Floor::class);
