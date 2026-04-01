@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ManagerController;
 use App\Http\Controllers\Admin\ReceptionistController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Client\ReservationController as ClientReservationController;
 use App\Http\Controllers\Manager\ClientController as ManagerClientController;
 use App\Http\Controllers\Manager\FloorController;
@@ -123,6 +124,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::resource('floors', FloorController::class)->except('show');
         Route::resource('rooms', RoomController::class)->except('show');
     });
+});
+
+Route::middleware(['auth', 'role:admin|manager|receptionist'])->prefix('analytics')->name('analytics.')->group(function () {
+    Route::get('/revenue', [AnalyticsController::class, 'revenuePerMonth'])->name('revenue');
+    Route::get('/reservations-by-country', [AnalyticsController::class, 'reservationsByCountry'])->name('reservations.by_country');
+    Route::get('/gender-ratio', [AnalyticsController::class, 'genderRatio'])->name('gender_ratio');
+    Route::get('/top-clients', [AnalyticsController::class, 'topClients'])->name('top_clients');
 });
 
 Route::middleware(['auth', 'role:manager'])->group(function () {

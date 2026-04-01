@@ -251,6 +251,29 @@ Run tests with:
 composer test
 ```
 
+## Dashboard Analytics (Web)
+
+Authenticated dashboards load analytics from web routes (session auth) for admin, manager, and receptionist roles.
+
+Routes:
+
+- `GET /analytics/revenue`
+- `GET /analytics/top-clients`
+- `GET /analytics/reservations-by-country`
+- `GET /analytics/gender-ratio`
+
+Named routes:
+
+- `analytics.revenue`
+- `analytics.top_clients`
+- `analytics.reservations.by_country`
+- `analytics.gender_ratio`
+
+Usage:
+
+- Admin dashboard uses all four charts (revenue, top clients, country, gender).
+- Manager dashboard uses the top clients chart.
+
 ## API Auth (Sanctum) - Run & Use
 
 ### 1. Ensure Sanctum prerequisites
@@ -321,6 +344,7 @@ Notes:
 - All API routes use `auth:sanctum`.
 - Analytics routes also require role: `admin|manager|receptionist`.
 - Banned users are blocked by `check.banned` middleware.
+- Internal dashboards use the matching web analytics routes under `/analytics/*` with session auth.
 
 ### 5. Who can create and use tokens
 

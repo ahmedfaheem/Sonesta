@@ -49,7 +49,7 @@ const buildTopClientsChart = (labels, values) => {
 
 onMounted(async () => {
     try {
-        const response = await axios.get('/api/analytics/top-clients');
+        const response = await axios.get(route('analytics.top_clients'));
 
         buildTopClientsChart(
             response.data.data.map((item) => item.name),
@@ -177,7 +177,7 @@ const modules = [
                         </p>
                     </div>
                     <div class="h-72">
-                        <canvas ref="topClientsChartCanvas" class="h-full w-full"></canvas>
+                        <canvas ref="topClientsChartCanvas" class="block h-full w-full"></canvas>
                     </div>
                 </div>
             </Card>

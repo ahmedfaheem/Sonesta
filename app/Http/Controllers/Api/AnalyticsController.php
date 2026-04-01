@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Reservation;
-use Illuminate\Database\Query\Expression;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -36,10 +35,14 @@ class AnalyticsController extends Controller
 
     public function reservationsByCountry(): JsonResponse
     {
+        $countryField = DB::connection()->getDriverName() === 'sqlite'
+            ? "COALESCE(NULLIF(TRIM(clients.country), ''), 'Unknown')"
+            : "COALESCE(NULLIF(TRIM(clients.country), ''), 'Unknown')";
+
         $countries = Reservation::query()
-            ->select('clients.country as country', DB::raw('COUNT(*) as count'))
+            ->selectRaw("{$countryField} as country, COUNT(*) as count")
             ->join('clients', 'clients.id', '=', 'reservations.client_id')
-            ->groupBy('clients.country')
+            ->groupBy('country')
             ->orderByDesc('count')
             ->get()
             ->map(function ($row) {
@@ -54,8 +57,12 @@ class AnalyticsController extends Controller
 
     public function genderRatio(): JsonResponse
     {
+        $genderField = DB::connection()->getDriverName() === 'sqlite'
+            ? "LOWER(COALESCE(NULLIF(TRIM(clients.gender), ''), 'unknown'))"
+            : "LOWER(COALESCE(NULLIF(TRIM(clients.gender), ''), 'unknown'))";
+
         $genders = Client::query()
-            ->select('gender', DB::raw('COUNT(*) as count'))
+            ->selectRaw("{$genderField} as gender, COUNT(*) as count")
             ->groupBy('gender')
             ->orderBy('gender')
             ->get()

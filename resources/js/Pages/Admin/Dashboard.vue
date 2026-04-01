@@ -1,10 +1,11 @@
 <script setup>
 import StatsCard from '@/Components/Admin/StatsCard.vue';
+import ChartCard from '@/Components/Charts/ChartCard.vue';
 import Button from '@/Components/ui/Button.vue';
 import Card from '@/Components/ui/Card.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link } from '@inertiajs/vue3';
-import { onMounted, ref } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import axios from 'axios';
 import Chart from 'chart.js/auto';
 
@@ -21,13 +22,44 @@ defineProps({
 
 const revenueChartCanvas = ref(null);
 const topClientsChartCanvas = ref(null);
+const reservationsByCountryCanvas = ref(null);
+const reservationsByGenderCanvas = ref(null);
+
+const loading = reactive({
+    revenue: true,
+    topClients: true,
+    country: true,
+    gender: true,
+});
+
+const errors = reactive({
+    revenue: '',
+    topClients: '',
+    country: '',
+    gender: '',
+});
+
+const chartInstances = {
+    revenue: null,
+    topClients: null,
+    country: null,
+    gender: null,
+};
+
+const resetChart = (key) => {
+    if (chartInstances[key]) {
+        chartInstances[key].destroy();
+        chartInstances[key] = null;
+    }
+};
 
 const buildRevenueChart = (labels, values) => {
     if (!revenueChartCanvas.value) {
         return;
     }
 
-    new Chart(revenueChartCanvas.value, {
+    resetChart('revenue');
+    chartInstances.revenue = new Chart(revenueChartCanvas.value, {
         type: 'line',
         data: {
             labels,
@@ -44,6 +76,7 @@ const buildRevenueChart = (labels, values) => {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 y: {
                     ticks: {
@@ -60,7 +93,8 @@ const buildTopClientsChart = (labels, values) => {
         return;
     }
 
-    new Chart(topClientsChartCanvas.value, {
+    resetChart('topClients');
+    chartInstances.topClients = new Chart(topClientsChartCanvas.value, {
         type: 'bar',
         data: {
             labels,
@@ -74,6 +108,7 @@ const buildTopClientsChart = (labels, values) => {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 y: {
                     beginAtZero: true,
@@ -84,24 +119,144 @@ const buildTopClientsChart = (labels, values) => {
     });
 };
 
-onMounted(async () => {
-    try {
-        const [revenueResponse, topClientsResponse] = await Promise.all([
-            axios.get('/api/analytics/revenue'),
-            axios.get('/api/analytics/top-clients'),
-        ]);
-
-        buildRevenueChart(
-            revenueResponse.data.data.map((item) => item.month),
-            revenueResponse.data.data.map((item) => Number(item.revenue)),
-        );
-        buildTopClientsChart(
-            topClientsResponse.data.data.map((item) => item.name),
-            topClientsResponse.data.data.map((item) => item.reservations_count),
-        );
-    } catch (error) {
-        console.error('Failed to load admin charts', error);
+const buildCountryChart = (labels, values) => {
+    if (!reservationsByCountryCanvas.value) {
+        return;
     }
+
+    resetChart('country');
+    chartInstances.country = new Chart(reservationsByCountryCanvas.value, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Reservations',
+                    data: values,
+                    backgroundColor: '#6366f1',
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    precision: 0,
+                },
+            },
+        },
+    });
+};
+
+const buildGenderChart = (labels, values) => {
+    if (!reservationsByGenderCanvas.value) {
+        return;
+    }
+
+    resetChart('gender');
+    chartInstances.gender = new Chart(reservationsByGenderCanvas.value, {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Reservations',
+                    data: values,
+                    backgroundColor: ['#0ea5e9', '#f97316', '#10b981', '#8b5cf6'],
+                    borderWidth: 0,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+            },
+        },
+    });
+};
+
+onMounted(async () => {
+    const tasks = [
+        axios.get(route('analytics.revenue'))
+            .then(async (response) => {
+                loading.revenue = false;
+                errors.revenue = '';
+                await nextTick();
+                const rows = response.data?.data ?? [];
+                buildRevenueChart(
+                    rows.map((item) => item.month),
+                    rows.map((item) => Number(item.revenue)),
+                );
+            })
+            .catch((error) => {
+                loading.revenue = false;
+                errors.revenue = 'Failed to load revenue chart.';
+                console.error('Failed to load Monthly Revenue chart', error);
+            }),
+        axios.get(route('analytics.top_clients'))
+            .then(async (response) => {
+                loading.topClients = false;
+                errors.topClients = '';
+                await nextTick();
+                const rows = response.data?.data ?? [];
+                buildTopClientsChart(
+                    rows.map((item) => item.name),
+                    rows.map((item) => Number(item.reservations_count)),
+                );
+            })
+            .catch((error) => {
+                loading.topClients = false;
+                errors.topClients = 'Failed to load top clients chart.';
+                console.error('Failed to load Top Clients chart', error);
+            }),
+        axios.get(route('analytics.reservations.by_country'))
+            .then(async (response) => {
+                loading.country = false;
+                errors.country = '';
+                await nextTick();
+                const rows = response.data?.data ?? [];
+                buildCountryChart(
+                    rows.map((item) => item.country),
+                    rows.map((item) => Number(item.count)),
+                );
+            })
+            .catch((error) => {
+                loading.country = false;
+                errors.country = 'Failed to load country chart.';
+                console.error('Failed to load Reservations By Country chart', error);
+            }),
+        axios.get(route('analytics.gender_ratio'))
+            .then(async (response) => {
+                loading.gender = false;
+                errors.gender = '';
+                await nextTick();
+                const rows = response.data?.data ?? [];
+                buildGenderChart(
+                    rows.map((item) => item.gender),
+                    rows.map((item) => Number(item.count)),
+                );
+            })
+            .catch((error) => {
+                loading.gender = false;
+                errors.gender = 'Failed to load gender chart.';
+                console.error('Failed to load Reservations By Gender chart', error);
+            }),
+    ];
+
+    await Promise.allSettled(tasks);
+});
+
+onBeforeUnmount(() => {
+    resetChart('revenue');
+    resetChart('topClients');
+    resetChart('country');
+    resetChart('gender');
 });
 </script>
 
@@ -177,35 +332,47 @@ onMounted(async () => {
         </div>
 
         <div class="grid gap-6 xl:grid-cols-2">
-            <Card class="overflow-hidden border-0 shadow-sm">
-                <div class="h-2 w-full bg-gradient-to-r from-sky-500 to-cyan-500" />
-                <div class="space-y-5 p-6">
-                    <div>
-                        <h2 class="text-2xl font-semibold text-slate-950">Monthly Revenue</h2>
-                        <p class="mt-2 text-sm leading-6 text-slate-600">
-                            Revenue per reservation month, updated from the analytics API.
-                        </p>
-                    </div>
-                    <div class="h-72">
-                        <canvas ref="revenueChartCanvas" class="h-full w-full"></canvas>
-                    </div>
-                </div>
-            </Card>
+            <ChartCard
+                title="Monthly Revenue"
+                description="Revenue per reservation month, updated from the analytics API."
+                accent="from-sky-500 to-cyan-500"
+                :loading="loading.revenue"
+                :error="errors.revenue"
+            >
+                <canvas ref="revenueChartCanvas" class="block h-full w-full"></canvas>
+            </ChartCard>
 
-            <Card class="overflow-hidden border-0 shadow-sm">
-                <div class="h-2 w-full bg-gradient-to-r from-emerald-500 to-teal-500" />
-                <div class="space-y-5 p-6">
-                    <div>
-                        <h2 class="text-2xl font-semibold text-slate-950">Top Clients</h2>
-                        <p class="mt-2 text-sm leading-6 text-slate-600">
-                            Most active clients by reservation count.
-                        </p>
-                    </div>
-                    <div class="h-72">
-                        <canvas ref="topClientsChartCanvas" class="h-full w-full"></canvas>
-                    </div>
-                </div>
-            </Card>
+            <ChartCard
+                title="Top Clients"
+                description="Most active clients by reservation count."
+                accent="from-emerald-500 to-teal-500"
+                :loading="loading.topClients"
+                :error="errors.topClients"
+            >
+                <canvas ref="topClientsChartCanvas" class="block h-full w-full"></canvas>
+            </ChartCard>
+        </div>
+
+        <div class="grid gap-6 xl:grid-cols-2">
+            <ChartCard
+                title="Reservations by Country"
+                description="Distribution of reservations grouped by client country."
+                accent="from-indigo-500 to-blue-500"
+                :loading="loading.country"
+                :error="errors.country"
+            >
+                <canvas ref="reservationsByCountryCanvas" class="block h-full w-full"></canvas>
+            </ChartCard>
+
+            <ChartCard
+                title="Reservations by Gender"
+                description="Distribution of reservations grouped by client gender."
+                accent="from-orange-500 to-amber-500"
+                :loading="loading.gender"
+                :error="errors.gender"
+            >
+                <canvas ref="reservationsByGenderCanvas" class="block h-full w-full"></canvas>
+            </ChartCard>
         </div>
     </div>
 </template>
