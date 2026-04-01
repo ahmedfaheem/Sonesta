@@ -18,8 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $isRunningTests = defined('PHPUNIT_COMPOSER_INSTALL')
+            || defined('__PHPUNIT_PHAR__')
+            || (($_SERVER['argv'][1] ?? null) === 'test');
+
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn (Request $request) => $request->expectsJson() ? null : route('dashboard'));
+        $middleware->preventRequestForgery(
+            except: $isRunningTests ? ['*'] : []
+        );
 
         $middleware->web(append: [
             PreventBackHistory::class,

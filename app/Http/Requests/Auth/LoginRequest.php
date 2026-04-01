@@ -50,6 +50,20 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $user = Auth::user();
+
+        if (
+            $user
+            && $user->hasAnyRole(['admin', 'manager', 'receptionist'])
+            && (bool) $user->is_banned
+        ) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been banned.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

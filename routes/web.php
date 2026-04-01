@@ -15,18 +15,30 @@ use App\Http\Controllers\Receptionist\DashboardController as ReceptionistDashboa
 use App\Http\Controllers\Receptionist\ReservationController as ReceptionistReservationController;
 use App\Models\Room;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
 Route::get('/', function (Request $request) {
+    $rooms = collect();
+
+    if (Schema::hasTable('rooms')) {
+        try {
+            $rooms = Room::query()
+                ->latest()
+                ->limit(6)
+                ->get(['id', 'number', 'capacity', 'price']);
+        } catch (QueryException) {
+            $rooms = collect();
+        }
+    }
+
     return Inertia::render('Welcome', [
         'canLogin' => ! $request->user() && Route::has('login'),
         'canRegister' => ! $request->user() && Route::has('register'),
-        'rooms' => Room::query()
-            ->latest()
-            ->limit(6)
-            ->get(['id', 'number', 'capacity', 'price'])
+        'rooms' => $rooms
             ->map(fn (Room $room) => [
                 'id' => $room->id,
                 'number' => $room->number,
@@ -70,8 +82,10 @@ Route::get('/dashboard', function (Request $request) {
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update.patch');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/pending-approval', function () {
         return Inertia::render('Auth/PendingApproval');
     })->name('pending-approval');

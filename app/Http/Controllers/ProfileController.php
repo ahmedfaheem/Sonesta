@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -52,7 +53,7 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return back()->with('success', 'Profile updated successfully.');
+        return redirect()->route('profile.edit')->with('success', 'Profile updated successfully.');
     }
 
     public function updatePassword(Request $request): RedirectResponse
@@ -66,7 +67,29 @@ class ProfileController extends Controller
             'password' => Hash::make($validated['password']),
         ])->save();
 
-        return back()->with('success', 'Password updated successfully.');
+        return redirect()->route('profile.edit')->with('success', 'Password updated successfully.');
+    }
+
+    public function destroy(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        Auth::logout();
+
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
     }
 
     protected function avatarUrl(?string $path): ?string
