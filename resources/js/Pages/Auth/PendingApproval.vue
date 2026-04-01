@@ -2,10 +2,32 @@
 import AuthCard from '@/Components/Auth/AuthCard.vue';
 import Button from '@/Components/ui/Button.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
+import { onMounted, onBeforeUnmount } from 'vue';
 
 defineOptions({
     layout: GuestLayout,
+});
+
+const goToLogin = () => {
+    router.post(route('logout'), {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            router.visit(route('login'));
+        },
+    });
+};
+
+const handlePopState = () => {
+    goToLogin();
+};
+
+onMounted(() => {
+    window.addEventListener('popstate', handlePopState);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('popstate', handlePopState);
 });
 </script>
 
@@ -27,9 +49,7 @@ defineOptions({
                 </p>
             </div>
 
-            <Link :href="route('login')" class="block">
-                <Button class="w-full">Back to login</Button>
-            </Link>
+            <Button class="w-full" @click="goToLogin">Back to login</Button>
         </div>
     </AuthCard>
 </template>
