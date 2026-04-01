@@ -193,6 +193,10 @@ abstract class UserManagementController extends Controller
             ->with('createdBy')
             ->role($this->role);
 
+        if ($this->role === 'client') {
+            $query->with('clientProfile:id,user_id,phone,country,gender,is_approved,approved_by');
+        }
+
         if (
             auth()->user()?->hasRole('manager')
             && in_array($this->role, ['receptionist', 'client'], true)

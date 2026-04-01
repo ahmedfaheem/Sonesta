@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\ClientsExport;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
+use App\Services\CountryService;
 use Inertia\Inertia;
 use Inertia\Response;
-use Rinvex\Country\Country;
 
 class ClientController extends UserManagementController
 {
+    public function __construct(private readonly CountryService $countryService)
+    {
+    }
+
     protected string $role = 'client';
 
     protected string $routePrefix = 'admin.clients';
@@ -35,16 +38,7 @@ class ClientController extends UserManagementController
         $this->authorizeCreate();
 
         return Inertia::render($this->page('Create'), [
-            'countries' => Cache::remember('countries.v2', 86400, function () {
-                return collect(countries())
-                    ->map(fn (array|Country $country) => [
-                        'name' => is_array($country) ? data_get($country, 'name.common', data_get($country, 'name')) : $country->getName(),
-                    ])
-                    ->filter(fn (array $country) => filled($country['name']))
-                    ->sortBy('name')
-                    ->values()
-                    ->all();
-            }),
+            'countries' => $this->countryService->all(),
         ]);
     }
 
@@ -55,16 +49,7 @@ class ClientController extends UserManagementController
 
         return Inertia::render($this->page('Edit'), [
             $this->singularKey => $this->serializeUser($user),
-            'countries' => Cache::remember('countries.v2', 86400, function () {
-                return collect(countries())
-                    ->map(fn (array|Country $country) => [
-                        'name' => is_array($country) ? data_get($country, 'name.common', data_get($country, 'name')) : $country->getName(),
-                    ])
-                    ->filter(fn (array $country) => filled($country['name']))
-                    ->sortBy('name')
-                    ->values()
-                    ->all();
-            }),
+            'countries' => $this->countryService->all(),
         ]);
     }
 

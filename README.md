@@ -475,6 +475,13 @@ Backend integration:
 
 All these controllers return both paginated rows and a `query` payload used by `DataTable.vue` to preserve table state across navigation.
 
+## Recent Updates (Apr 1, 2026)
+
+- Added a `CountryService` to cache country lists and reuse them across registration and admin/manager forms.
+- Added manager-only Excel export for clients at `/manager/clients/export` using Laravel Excel.
+- Added a manager clients export button on the Manager Clients index page.
+- Eager-loaded client profiles in user management listings to reduce N+1 queries.
+
 ## Notes
 
 - `resources/js/Pages/Admin/Dashboard.vue` and `resources/js/Pages/Manager/Dashboard.vue` exist as dashboard entry pages

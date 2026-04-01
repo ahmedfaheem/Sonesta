@@ -6,33 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterUserRequest;
 use App\Models\Client;
 use App\Models\User;
+use App\Services\CountryService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Rinvex\Country\Country;
 
 class RegisteredUserController extends Controller
 {
+    public function __construct(private readonly CountryService $countryService)
+    {
+    }
+
     /**
      * Display the registration view.
      */
     public function create(): Response
     {
         return Inertia::render('Auth/Register', [
-            'countries' => Cache::remember('countries.v2', 86400, function () {
-                return collect(countries())
-                    ->map(fn (array|Country $country) => [
-                        'name' => is_array($country) ? data_get($country, 'name.common', data_get($country, 'name')) : $country->getName(),
-                    ])
-                    ->filter(fn (array $country) => filled($country['name']))
-                    ->sortBy('name')
-                    ->values()
-                    ->all();
-            }),
+            'countries' => $this->countryService->all(),
         ]);
     }
 

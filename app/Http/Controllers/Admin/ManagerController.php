@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
+use App\Services\CountryService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Rinvex\Country\Country;
 
 class ManagerController extends UserManagementController
 {
+    public function __construct(private readonly CountryService $countryService)
+    {
+    }
+
     protected string $role = 'manager';
 
     protected string $routePrefix = 'admin.managers';
@@ -30,7 +33,7 @@ class ManagerController extends UserManagementController
         $this->authorizeCreate();
 
         return Inertia::render($this->page('Create'), [
-            'countries' => $this->countries(),
+            'countries' => $this->countryService->all(),
         ]);
     }
 
@@ -41,7 +44,7 @@ class ManagerController extends UserManagementController
 
         return Inertia::render($this->page('Edit'), [
             $this->singularKey => $this->serializeUser($user),
-            'countries' => $this->countries(),
+            'countries' => $this->countryService->all(),
         ]);
     }
 
@@ -63,17 +66,4 @@ class ManagerController extends UserManagementController
         );
     }
 
-    protected function countries(): array
-    {
-        return Cache::remember('countries.v2', 86400, function () {
-            return collect(countries())
-                ->map(fn (array|Country $country) => [
-                    'name' => is_array($country) ? data_get($country, 'name.common', data_get($country, 'name')) : $country->getName(),
-                ])
-                ->filter(fn (array $country) => filled($country['name']))
-                ->sortBy('name')
-                ->values()
-                ->all();
-        });
-    }
 }
