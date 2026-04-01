@@ -22,6 +22,7 @@ Sonesta is a Laravel 13 hotel management foundation built with Inertia.js and Vu
 - `rinvex/countries`
 - `stripe/stripe-php`
 - `chart.js`
+- `@tanstack/vue-table`
 
 ## Current Application State
 
@@ -417,6 +418,38 @@ Implementation references:
 - `app/Http/Controllers/Admin/UserManagementController.php`
 - `app/Http/Controllers/Admin/ManagerController.php`
 - `database/migrations/2026_04_01_220000_add_is_banned_to_users_table.php`
+
+## TanStack Tables (Server-Side)
+
+The following index pages are migrated to TanStack table with a reusable component:
+
+- Admin: managers, receptionists, clients
+- Manager: floors, rooms
+
+Frontend:
+
+- Shared component: `resources/js/Components/DataTable.vue`
+- Features:
+  - server-side pagination
+  - server-side sorting
+  - server-side filtering/search
+  - consistent actions column layout and alignment
+
+Backend query contract:
+
+- `filter[search]`
+- `filter[floor_id]` (rooms)
+- `sort` (example: `name` or `-created_at`)
+- `page`
+- `per_page`
+
+Backend integration:
+
+- `app/Http/Controllers/Admin/UserManagementController.php`
+- `app/Http/Controllers/Manager/FloorController.php`
+- `app/Http/Controllers/Manager/RoomController.php`
+
+All these controllers return both paginated rows and a `query` payload used by `DataTable.vue` to preserve table state across navigation.
 
 ## Notes
 
