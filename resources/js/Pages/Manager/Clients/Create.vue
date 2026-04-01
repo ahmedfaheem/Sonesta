@@ -7,11 +7,21 @@ defineOptions({
     layout: ManagerLayout,
 });
 
+const props = defineProps({
+    countries: {
+        type: Array,
+        default: () => [],
+    },
+});
+
 const form = useForm({
     name: '',
     email: '',
     password: '',
     national_id: '',
+    phone: '',
+    country: '',
+    gender: '',
     avatar: null,
     is_approved: false,
 });
@@ -29,6 +39,7 @@ const submit = () => {
         back-label="Back to clients"
         submit-label="Create client"
         :form="form"
+        :countries="countries"
         show-approval
         @submit="submit"
     />

@@ -2,7 +2,8 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Badge from '@/Components/ui/Badge.vue';
 import Card from '@/Components/ui/Card.vue';
-import { Link } from '@inertiajs/vue3';
+import Button from '@/Components/ui/Button.vue';
+import { Link, router } from '@inertiajs/vue3';
 
 defineOptions({
     layout: AdminLayout,
@@ -26,6 +27,16 @@ const formatDate = (value) => {
         day: 'numeric',
     }).format(new Date(value));
 };
+
+const cancelReservation = (reservation) => {
+    if (!confirm(`Cancel reservation for ${reservation.client_name}?`)) {
+        return;
+    }
+
+    router.delete(route('admin.reservations.destroy', reservation.id), {
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -46,6 +57,7 @@ const formatDate = (value) => {
                             <th class="px-6 py-4">Paid</th>
                             <th class="px-6 py-4">Date</th>
                             <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white text-sm text-slate-700">
@@ -58,9 +70,12 @@ const formatDate = (value) => {
                             <td class="px-6 py-4">
                                 <Badge variant="success">Paid</Badge>
                             </td>
+                            <td class="px-6 py-4">
+                                <Button variant="destructive" size="sm" @click="cancelReservation(reservation)">Cancel</Button>
+                            </td>
                         </tr>
                         <tr v-if="!reservations.data.length">
-                            <td colspan="6" class="px-6 py-16 text-center text-sm text-slate-500">
+                            <td colspan="7" class="px-6 py-16 text-center text-sm text-slate-500">
                                 No reservations found.
                             </td>
                         </tr>

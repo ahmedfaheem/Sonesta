@@ -1,5 +1,6 @@
 <script setup>
 import Checkbox from '@/Components/Checkbox.vue';
+import CountrySelect from '@/Components/Auth/CountrySelect.vue';
 import InputError from '@/Components/InputError.vue';
 import Button from '@/Components/ui/Button.vue';
 import Card from '@/Components/ui/Card.vue';
@@ -43,6 +44,10 @@ const props = defineProps({
     currentAvatar: {
         type: String,
         default: null,
+    },
+    countries: {
+        type: Array,
+        default: () => [],
     },
 });
 
@@ -93,6 +98,36 @@ const preview = computed(() => {
                     <Label for="national_id">National ID</Label>
                     <Input id="national_id" v-model="form.national_id" type="text" />
                     <InputError :message="form.errors.national_id" />
+                </div>
+
+                <div class="space-y-2">
+                    <Label for="phone">Phone</Label>
+                    <Input id="phone" v-model="form.phone" type="text" />
+                    <InputError :message="form.errors.phone" />
+                </div>
+
+                <div class="space-y-2">
+                    <CountrySelect
+                        id="country"
+                        label="Country"
+                        v-model="form.country"
+                        :countries="countries"
+                        :error="form.errors.country"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <Label for="gender">Gender</Label>
+                    <select
+                        id="gender"
+                        v-model="form.gender"
+                        class="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm transition focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                    >
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                    <InputError :message="form.errors.gender" />
                 </div>
 
                 <div class="space-y-2 md:col-span-2">

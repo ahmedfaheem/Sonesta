@@ -1,18 +1,18 @@
 <?php
 
-use App\Http\Controllers\Manager\FloorController;
-use App\Http\Controllers\Manager\ClientController as ManagerClientController;
-use App\Http\Controllers\Manager\ReceptionistController as ManagerReceptionistController;
-use App\Http\Controllers\Manager\RoomController;
-use App\Http\Controllers\Client\ReservationController as ClientReservationController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ManagerController;
-use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\ReceptionistController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
+use App\Http\Controllers\Client\ReservationController as ClientReservationController;
+use App\Http\Controllers\Manager\ClientController as ManagerClientController;
+use App\Http\Controllers\Manager\FloorController;
+use App\Http\Controllers\Manager\ReceptionistController as ManagerReceptionistController;
+use App\Http\Controllers\Manager\RoomController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Receptionist\ClientController as ReceptionistClientController;
 use App\Http\Controllers\Receptionist\DashboardController as ReceptionistDashboardController;
 use App\Http\Controllers\Receptionist\ReservationController as ReceptionistReservationController;
-use App\Http\Controllers\ProfileController;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -93,6 +93,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
         Route::get('reservations', [AdminReservationController::class, 'index'])
             ->name('reservations.index');
+        Route::delete('reservations/{reservation}', [AdminReservationController::class, 'destroy'])
+            ->name('reservations.destroy');
 
         Route::resource('managers', ManagerController::class)
             ->parameters(['managers' => 'user']);

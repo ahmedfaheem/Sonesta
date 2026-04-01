@@ -7,7 +7,7 @@ use App\Models\User;
 
 class ReservationPolicy
 {
-    public function before(User $user, string $ability): bool|null
+    public function before(User $user, string $ability): ?bool
     {
         if ($user->hasRole('admin')) {
             return true;
@@ -24,5 +24,10 @@ class ReservationPolicy
     public function view(User $user, Reservation $reservation): bool
     {
         return $user->hasRole('receptionist');
+    }
+
+    public function delete(User $user, Reservation $reservation): bool
+    {
+        return $user->hasRole('admin');
     }
 }

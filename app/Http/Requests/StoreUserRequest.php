@@ -22,6 +22,9 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
             'national_id' => ['nullable', 'string', 'max:255', 'unique:users,national_id'],
+            'phone' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'gender' => ['nullable', 'string', 'in:male,female'],
             'is_approved' => ['sometimes', 'boolean'],
             'avatar' => [
                 'nullable',

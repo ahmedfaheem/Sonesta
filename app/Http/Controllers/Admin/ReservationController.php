@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -30,6 +31,15 @@ class ReservationController extends Controller
         ]);
     }
 
+    public function destroy(Reservation $reservation): RedirectResponse
+    {
+        $this->authorize('delete', $reservation);
+
+        $reservation->delete();
+
+        return back()->with('success', 'Reservation cancelled successfully.');
+    }
+
     protected function serializeReservation(Reservation $reservation): array
     {
         $clientName = $reservation->client?->user?->name ?? $reservation->client?->name;
@@ -45,4 +55,3 @@ class ReservationController extends Controller
         ];
     }
 }
-

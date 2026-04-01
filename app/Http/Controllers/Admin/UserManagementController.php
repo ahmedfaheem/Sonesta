@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Client;
 use App\Models\User;
+use App\Notifications\ClientApprovedNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -166,11 +168,9 @@ abstract class UserManagementController extends Controller
 
     protected function usersQuery(): Builder
     {
-        $query = User::query()
+        return User::query()
             ->with('createdBy')
             ->role($this->role);
-
-        return $query;
     }
 
     protected function saveUser(User $user, StoreUserRequest|UpdateUserRequest $request): User
@@ -181,6 +181,8 @@ abstract class UserManagementController extends Controller
         $user->email = $validated['email'] ?? $user->email;
         $user->national_id = $validated['national_id'] ?? null;
         $user->created_by = $user->exists ? $user->created_by : $request->user()->id;
+
+        $wasPreviouslyApproved = $user->exists ? (bool) $user->is_approved : true;
 
         if ($this->supportsApproval) {
             $defaultApproval = $user->exists ? (bool) $user->is_approved : true;
@@ -199,6 +201,38 @@ abstract class UserManagementController extends Controller
         }
 
         $user->save();
+
+        if ($this->role === 'client') {
+            $clientProfile = $user->clientProfile;
+
+            if ($clientProfile) {
+                $clientProfile->update([
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $validated['phone'] ?? $clientProfile->phone,
+                    'country' => $validated['country'] ?? $clientProfile->country,
+                    'gender' => $validated['gender'] ?? $clientProfile->gender,
+                    'is_approved' => $user->is_approved,
+                    'approved_by' => $user->is_approved ? ($clientProfile->approved_by ?? auth()->id()) : null,
+                ]);
+            } else {
+                Client::create([
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $validated['phone'] ?? null,
+                    'country' => $validated['country'] ?? null,
+                    'gender' => $validated['gender'] ?? null,
+                    'avatar' => $user->avatar,
+                    'is_approved' => $user->is_approved,
+                    'approved_by' => $user->is_approved ? auth()->id() : null,
+                ]);
+            }
+
+            if ($user->is_approved && ! $wasPreviouslyApproved) {
+                $user->notify(new ClientApprovedNotification);
+            }
+        }
 
         return $user->fresh('createdBy');
     }
@@ -234,6 +268,9 @@ abstract class UserManagementController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'national_id' => $user->national_id,
+            'phone' => $this->role === 'client' ? $user->clientProfile?->phone : null,
+            'country' => $this->role === 'client' ? $user->clientProfile?->country : null,
+            'gender' => $this->role === 'client' ? $user->clientProfile?->gender : null,
             'avatar' => $user->avatar,
             'avatar_url' => $this->avatarUrl($user->avatar),
             'created_at' => $user->created_at?->toISOString(),

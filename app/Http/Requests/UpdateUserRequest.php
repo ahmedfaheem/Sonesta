@@ -38,6 +38,9 @@ class UpdateUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'national_id')->ignore($user),
             ],
+            'phone' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'gender' => ['nullable', 'string', 'in:male,female'],
             'is_approved' => ['sometimes', 'boolean'],
             'avatar' => [
                 'nullable',
